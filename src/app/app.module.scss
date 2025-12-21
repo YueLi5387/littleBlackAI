@@ -1,0 +1,113 @@
+.app {
+  width: 100vw;
+  height: 100vh;
+  background: url("../../public/【哲风壁纸】卡通-森林-河流\ \(1\).png")
+    no-repeat center / cover;
+  overflow: hidden;
+  background-color: rgba(0, 0, 0, 0.4); /* 黑色，透明度 40% */
+  background-blend-mode: overlay; //背景颜色和背景图混合
+  .content {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 10vh 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    // 动画：从底部淡入--持续 1.2 秒，速度曲线是 “慢快慢”
+    animation: fadeIn 1.2s ease-in-out;
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .title {
+      color: #ffffff;
+      font-size: 4.5rem;
+      font-weight: 800;
+      margin-bottom: 20px;
+      text-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      letter-spacing: 4px;
+      // 背景渐变动画
+      background: linear-gradient(45deg, #ffffff, #e0e0e0);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      // 动画：背景透明度闪烁动画，从左到右移动，持续 2 秒，速度曲线是 “慢快慢”
+      animation: shine 3s infinite;
+
+      @keyframes shine {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.8;
+        }
+      }
+    }
+
+    .subtitle {
+      color: rgba(255, 255, 255, 0.9);
+      font-size: 1.5rem;
+      margin-bottom: 50px;
+      font-weight: 300;
+      letter-spacing: 1px; // 字母间距
+      text-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .login {
+      border-radius: 50px;
+      padding: 15px 40px;
+      font-size: 1.2rem;
+      font-weight: 600;
+      background: linear-gradient(45deg, #6a5acd, #4169e1);
+      border: none;
+      box-shadow: 0 8px 20px rgba(106, 90, 205, 0.4);
+      transition: all 0.3s ease;
+      cursor: pointer; //选中时鼠标变成手指
+      color: white;
+
+      &:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 25px rgba(106, 90, 205, 0.6);
+        background: linear-gradient(45deg, #7b68ee, #5179f8);
+      }
+
+      &:active {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 15px rgba(106, 90, 205, 0.4);
+      }
+    }
+  }
+
+  .footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 0;
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.7), transparent);
+    text-align: center;
+    color: rgba(255, 255, 255, 0.8);
+    font-size: 0.9rem;
+    backdrop-filter: blur(5px); //backdrop-filter是css的滤镜，这个blur值代表模糊
+
+    p {
+      margin: 5px 0;
+      transition: color 0.3s ease;
+
+      &:hover {
+        color: #ffffff;
+      }
+    }
+  }
+}
