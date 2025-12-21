@@ -3,10 +3,10 @@ import { Button, Card, Checkbox, Form, Input, Segmented } from "antd";
 import styles from "./login.module.scss";
 import { useState } from "react";
 export default function LoginPage() {
-  const onFinish = (values) => {
+  const onFinish = (values: any) => {
     console.log("Success:", values);
   };
-  const onFinishFailed = (errorInfo) => {
+  const onFinishFailed = (errorInfo: any) => {
     console.log("Failed:", errorInfo);
   };
   const [isLogin, setIsLogin] = useState(true);

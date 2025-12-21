@@ -4,12 +4,9 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusCircleOutlined,
-  MessageOutlined,
-  SettingOutlined,
+  UploadOutlined,
   UserOutlined,
-  LogoutOutlined,
-  HistoryOutlined,
-  QuestionCircleOutlined,
+  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 
@@ -47,18 +44,18 @@ export default function ViewLayout({
             },
             {
               key: "1",
-              icon: <MessageOutlined />,
-              label: "对话历史",
+              // icon: <UserOutlined />,
+              label: "你好我是abc",
             },
             {
               key: "2",
-              icon: <HistoryOutlined />,
-              label: "使用记录",
+              // icon: <VideoCameraOutlined />,
+              label: "你好蝴蝶酥胡",
             },
             {
               key: "3",
-              icon: <QuestionCircleOutlined />,
-              label: "帮助中心",
+              // icon: <UploadOutlined />,
+              label: "发顺丰大幅度",
             },
           ]}
         />
@@ -78,7 +75,7 @@ export default function ViewLayout({
               height: 64,
             }}
           />
-          <h1 className={styles.title}>智能助手</h1>
+          <h1 className={styles.title}>标题</h1>
         </Header>
         <Content
           style={{
