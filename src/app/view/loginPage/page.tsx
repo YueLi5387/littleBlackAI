@@ -1,24 +1,62 @@
 "use client";
-import { Button, Card, Checkbox, Form, Input, Segmented } from "antd";
+import { Button, Card, Checkbox, Form, Input, message, Segmented } from "antd";
 import styles from "./login.module.scss";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useUserStore } from "@/store/userStore";
+import { useRouter } from "next/navigation";
+
 export default function LoginPage() {
-  const onFinish = (values: any) => {
-    console.log("Success:", values);
-  };
-  const onFinishFailed = (errorInfo: any) => {
-    console.log("Failed:", errorInfo);
-  };
   const [isLogin, setIsLogin] = useState(true);
+  // 路由跳转
+  const router = useRouter();
+  // 获取仓库
+  const { user, setUser, getUser } = useUserStore();
+  const formRef = useRef(null);
+  // 改变登录状态
+  const changeLogin = (value: string) => {
+    formRef.current!.resetFields();
+    setIsLogin(value === "登录");
+  };
+  const [messageApi, contextHolder] = message.useMessage();
+  // 登录
+  const onFinishLogin = (values: any) => {
+    // console.log("Success:", values);
+    if (
+      !user ||
+      values.username !== user?.username ||
+      values.password !== user?.password
+    ) {
+      messageApi.open({
+        type: "error",
+        content: "用户名或密码错误",
+      });
+    } else {
+      setUser(values);
+      router.push("/view/chatPage");
+      messageApi.open({
+        type: "success",
+        content: "登录成功",
+      });
+    }
+  };
+  // 注册
+  const onFinishRegister = (values: any) => {
+    setUser(values);
+    messageApi.open({
+      type: "success",
+      content: "注册成功",
+    });
+    changeLogin("登录");
+  };
+
   return (
     <div className={styles.loginPage}>
+      {contextHolder}
+
       <Card className={styles.login}>
         <Segmented
           options={["登录", "注册"]}
-          onChange={(value) => {
-            setIsLogin(value === "登录");
-            console.log(value); // string
-          }}
+          onChange={changeLogin}
           className={styles.header}
         />
         <div className={styles.content}>
@@ -29,37 +67,34 @@ export default function LoginPage() {
               wrapperCol={{ span: 16 }}
               style={{ maxWidth: 600 }}
               initialValues={{ remember: true }}
-              onFinish={onFinish}
-              onFinishFailed={onFinishFailed}
+              onFinish={onFinishLogin}
+              // onFinishFailed={onFinishFailed}
               autoComplete="off"
+              ref={formRef}
             >
               <Form.Item
-                label="Username"
+                label="用户名"
                 name="username"
-                rules={[
-                  { required: true, message: "Please input your username!" },
-                ]}
+                rules={[{ required: true, message: "请输入用户名！" }]}
               >
                 <Input />
               </Form.Item>
 
               <Form.Item
-                label="Password"
+                label="密码"
                 name="password"
-                rules={[
-                  { required: true, message: "Please input your password!" },
-                ]}
+                rules={[{ required: true, message: "请输入密码！" }]}
               >
                 <Input.Password />
               </Form.Item>
 
               <Form.Item name="remember" valuePropName="checked" label={null}>
-                <Checkbox>Remember me</Checkbox>
+                <Checkbox>记住我</Checkbox>
               </Form.Item>
 
               <Form.Item label={null}>
                 <Button type="primary" htmlType="submit">
-                  Submit
+                  登录
                 </Button>
               </Form.Item>
             </Form>
@@ -70,46 +105,50 @@ export default function LoginPage() {
               wrapperCol={{ span: 16 }}
               style={{ maxWidth: 600 }}
               initialValues={{ remember: true }}
-              onFinish={onFinish}
-              onFinishFailed={onFinishFailed}
+              onFinish={onFinishRegister}
               autoComplete="off"
+              ref={formRef}
             >
               <Form.Item
-                label="Username"
+                label="用户名"
                 name="username"
-                rules={[
-                  { required: true, message: "Please input your username!" },
-                ]}
+                rules={[{ required: true, message: "请输入用户名！" }]}
               >
                 <Input />
               </Form.Item>
 
               <Form.Item
-                label="Password"
+                label="密码"
                 name="password"
-                rules={[
-                  { required: true, message: "Please input your password!" },
-                ]}
+                rules={[{ required: true, message: "请输入密码！" }]}
               >
                 <Input.Password />
               </Form.Item>
               <Form.Item
-                label="rePassword"
+                label="确认密码"
                 name="rePassword"
                 rules={[
-                  { required: true, message: "Please input your rePassword!" },
+                  { required: true, message: "请再次输入密码！" },
+                  {
+                    validator: (rule, value) => {
+                      if (value !== formRef.current.getFieldValue("password")) {
+                        return Promise.reject("两次密码不一致！");
+                      }
+                      return Promise.resolve();
+                    },
+                  },
                 ]}
               >
                 <Input.Password />
               </Form.Item>
 
-              <Form.Item name="remember" valuePropName="checked" label={null}>
-                <Checkbox>Remember me</Checkbox>
-              </Form.Item>
+              {/* <Form.Item name="remember" valuePropName="checked" label={null}>
+                <Checkbox>记住我</Checkbox>
+              </Form.Item> */}
 
               <Form.Item label={null}>
                 <Button type="primary" htmlType="submit">
-                  Submit
+                  注册
                 </Button>
               </Form.Item>
             </Form>

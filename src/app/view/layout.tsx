@@ -13,10 +13,6 @@ import { Button, Layout, Menu, theme } from "antd";
 const { Header, Sider, Content } = Layout;
 import styles from "./view.module.scss";
 
-// const App: React.FC = () => {
-
-// };
-
 // export default App;
 export default function ViewLayout({
   children,
@@ -30,7 +26,12 @@ export default function ViewLayout({
 
   return (
     <Layout className={styles.layout}>
-      <Sider trigger={null} collapsible collapsed={collapsed}>
+      <Sider
+        trigger={null}
+        collapsible
+        collapsed={collapsed}
+        className="styles.left"
+      >
         <div className="demo-logo-vertical" />
         <Menu
           theme="dark"
@@ -60,7 +61,7 @@ export default function ViewLayout({
           ]}
         />
       </Sider>
-      <Layout>
+      <Layout className={styles.right}>
         <Header
           style={{ padding: 0, background: colorBgContainer }}
           className={styles.header}
@@ -79,10 +80,9 @@ export default function ViewLayout({
         </Header>
         <Content
           style={{
-            margin: "24px 16px 0px 16px",
+            margin: "12px 10px 0px ",
             padding: 24,
             minHeight: 280,
-            // background: colorBgContainer,
             borderRadius: borderRadiusLG,
           }}
           className={styles.content}
