@@ -1,33 +1,30 @@
-import { Layout } from "antd";
-import { Content, Footer } from "antd/es/layout/layout";
+"use client";
+import { useState } from "react";
+import styles from "./chat.module.scss";
+import TextArea from "antd/es/input/TextArea";
+import { Button } from "antd";
 
 export default function ChatPage() {
-  const footerStyle: React.CSSProperties = {
-    textAlign: "center",
-    color: "#fff",
-    backgroundColor: "#4096ff",
-  };
-
-  const layoutStyle = {
-    borderRadius: 8,
-    overflow: "hidden",
-    width: "calc(50% - 8px)",
-    maxWidth: "calc(50% - 8px)",
-  };
-  const contentStyle: React.CSSProperties = {
-    textAlign: "center",
-    minHeight: 120,
-    lineHeight: "120px",
-    color: "#fff",
-    backgroundColor: "#0958d9",
-  };
+  // 输入框
+  const [value, setValue] = useState("");
 
   return (
-    <div>
-      <Layout style={layoutStyle}>
-        <Content style={contentStyle}>Content</Content>
-        <Footer style={footerStyle}>Footer</Footer>
-      </Layout>
+    <div className={styles.chatPage}>
+      <div className={styles.content}>Content</div>
+      <div className={styles.footer}>
+        <TextArea
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Controlled autosize"
+          className={styles.textarea}
+          size="large"
+        />
+        <div className={styles.chatBtn}>
+          <Button className={styles.btn} type="primary">
+            发送
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }

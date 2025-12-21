@@ -4,9 +4,6 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusCircleOutlined,
-  UploadOutlined,
-  UserOutlined,
-  VideoCameraOutlined,
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme } from "antd";
 
@@ -30,13 +27,13 @@ export default function ViewLayout({
         trigger={null}
         collapsible
         collapsed={collapsed}
-        className="styles.left"
+        className={styles.left}
       >
-        <div className="demo-logo-vertical" />
+        {/* 遮罩层，模糊滤镜 */}
+        <div className={styles.cover}>请登录</div>
         <Menu
           theme="dark"
           mode="inline"
-          // defaultSelectedKeys={["1"]}
           items={[
             {
               key: "0",
@@ -81,7 +78,7 @@ export default function ViewLayout({
         <Content
           style={{
             margin: "12px 10px 0px ",
-            padding: 24,
+            // padding: "24px 0px 0px",
             minHeight: 280,
             borderRadius: borderRadiusLG,
           }}
