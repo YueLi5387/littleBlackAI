@@ -1,18 +1,69 @@
 .layout {
   width: 100vw;
   height: 100vh;
+
+  :global(.ant-layout-sider) {
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
+    z-index: 10;
+  }
+
+  :global(.ant-menu-dark) {
+    background: #001529;
+
+    :global(.ant-menu-item) {
+      margin: 4px 8px;
+      border-radius: 6px;
+
+      &:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+    }
+
+    :global(.ant-menu-item-selected) {
+      background-color: #1890ff;
+    }
+  }
+
   .header {
     display: flex;
+    align-items: center;
+    padding: 0 16px;
+    background: #fff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    position: relative;
+    z-index: 9;
+
     .title {
       flex: 1;
       text-align: center;
+      margin: 0;
+      font-size: 20px;
+      font-weight: 500;
+      color: #262626;
+    }
+
+    :global(.ant-btn) {
+      transition: all 0.3s;
+
+      &:hover {
+        background-color: rgba(24, 144, 255, 0.1);
+        color: #1890ff;
+      }
     }
   }
+
   .content {
-    background: url("../../../public/【哲风壁纸】卡通羊-可爱小羊.png") no-repeat
-      center / cover;
+    background: url("../../../public/【哲风壁纸】卡通-森林-河流\ (1\).png")
+      no-repeat center / cover;
     overflow: hidden;
-    background-color: rgba(255, 255, 255, 0.4); /* 黑色，透明度 40% */
-    background-blend-mode: overlay; //背景颜色和背景图混合
+    background-color: rgba(0, 0, 0, 0.4);
+    background-blend-mode: overlay;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    transition: all 0.3s ease;
+
+    &:hover {
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
   }
 }
