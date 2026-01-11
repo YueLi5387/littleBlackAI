@@ -1,37 +1,29 @@
 .chatPage {
   width: 100%;
   height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   .content {
     width: 100%;
-    height: 80%;
-    background-color: skyblue;
+    height: 30%;
+    // background-color: skyblue;
+    font-size: 2rem;
+    font-weight: bold;
+    justify-content: center;
+    align-items: center;
+    display: flex;
+    color: #634f4f;
+    // 字体透明度
+    opacity: 0.8;
+    // 字体阴影
+    text-shadow: 5px 5px 5px rgba($color: #815b5b, $alpha: 0.5);
   }
   .footer {
-    width: 100%;
     height: 20%;
-    padding: 8px;
-    .textarea {
-      width: 100%;
-      height: 70%;
-      background-color: rgba($color: #ffffff, $alpha: 0.8);
-      border: none;
-      &:hover {
-        border: none;
-      }
-      &:active {
-        border: none;
-      }
-    }
-    .chatBtn {
-      padding: 3px 20px;
-      width: 100%;
-      height: 30%;
-      background-color: rgba($color: #ffffff, $alpha: 0.8);
-      display: flex;
-      justify-content: end;
-      .btn {
-        height: 100%;
-      }
-    }
+    width: 100%;
+    display: flex;
+    justify-content: center;
   }
 }

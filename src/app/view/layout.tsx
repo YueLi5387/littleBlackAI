@@ -9,6 +9,7 @@ import { Button, Layout, Menu, theme } from "antd";
 
 const { Header, Sider, Content } = Layout;
 import styles from "./view.module.scss";
+export const CTX = React.createContext({});
 
 // export default App;
 export default function ViewLayout({
@@ -20,7 +21,10 @@ export default function ViewLayout({
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
-
+  const [isLogin, setIsLogin] = useState(false);
+  const setLogin = (login: boolean) => {
+    setIsLogin(true);
+  };
   return (
     <Layout className={styles.layout}>
       <Sider
@@ -30,7 +34,7 @@ export default function ViewLayout({
         className={styles.left}
       >
         {/* 遮罩层，模糊滤镜 */}
-        <div className={styles.cover}>请登录</div>
+        {!isLogin && <div className={styles.cover}>请登录</div>}
         <Menu
           theme="dark"
           mode="inline"
@@ -84,7 +88,7 @@ export default function ViewLayout({
           }}
           className={styles.content}
         >
-          {children}
+          <CTX.Provider value={setLogin}>{children}</CTX.Provider>
         </Content>
       </Layout>
     </Layout>

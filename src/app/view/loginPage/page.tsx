@@ -1,9 +1,12 @@
 "use client";
 import { Button, Card, Checkbox, Form, Input, message, Segmented } from "antd";
 import styles from "./login.module.scss";
-import { useRef, useState } from "react";
+import { useContext, useRef, useState } from "react";
 import { useUserStore } from "@/store/userStore";
 import { useRouter } from "next/navigation";
+import { CTX } from "../layout";
+import { log } from "console";
+import { registerService } from "@/lib/api/user";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
@@ -13,6 +16,8 @@ export default function LoginPage() {
   const { user, setUser, getUser } = useUserStore();
   const formRef = useRef(null);
   // 改变登录状态
+  const setLogin = useContext(CTX) as () => void;
+
   const changeLogin = (value: string) => {
     formRef.current!.resetFields();
     setIsLogin(value === "登录");
@@ -20,7 +25,6 @@ export default function LoginPage() {
   const [messageApi, contextHolder] = message.useMessage();
   // 登录
   const onFinishLogin = (values: any) => {
-    // console.log("Success:", values);
     if (
       !user ||
       values.username !== user?.username ||
@@ -33,6 +37,7 @@ export default function LoginPage() {
     } else {
       setUser(values);
       router.push("/view/chatPage");
+      setLogin();
       messageApi.open({
         type: "success",
         content: "登录成功",
@@ -40,7 +45,10 @@ export default function LoginPage() {
     }
   };
   // 注册
-  const onFinishRegister = (values: any) => {
+  const onFinishRegister = async (values: any) => {
+    const res = await registerService(values);
+    console.log("res:", res);
+
     setUser(values);
     messageApi.open({
       type: "success",

@@ -1,0 +1,34 @@
+.footer {
+  width: 70%;
+  height: 100%;
+  // padding: 8px;
+  border: 1px solid #b7a5a5;
+  box-shadow: 5px 5px 10px 0px rgba($color: #744f4f, $alpha: 0.3);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  .textarea {
+    width: 100%;
+    background-color: rgba($color: #ffffff, $alpha: 1);
+    border: none;
+    border-radius: 0px;
+    &:hover {
+      border: none;
+    }
+    &:active {
+      border: none;
+    }
+  }
+  .chatBtn {
+    padding: 3px 20px;
+    width: 100%;
+    flex: 1;
+    background-color: rgba($color: #ffffff, $alpha: 1);
+    display: flex;
+    justify-content: end;
+    .btn {
+      height: 100%;
+    }
+  }
+}
