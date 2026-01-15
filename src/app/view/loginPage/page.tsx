@@ -174,11 +174,12 @@ import { useUserStore } from "@/store/userStore";
 import { useRouter } from "next/navigation";
 import { CTX } from "../layout";
 import { registerService } from "@/lib/api/user";
+import { createClient } from "@/lib/supabase/client";
 
 export default function LoginPage() {
   const [isLogin, setIsLogin] = useState(true);
   // // 路由跳转
-  // const router = useRouter();
+  const router = useRouter();
   // // 获取仓库
   // const { user, setUser, getUser } = useUserStore();
   const formRef = useRef(null);
@@ -197,22 +198,48 @@ export default function LoginPage() {
     //   values.email !== user?.email ||
     //   values.password !== user?.password
     // ) {
-    //   messageApi.open({
-    //     type: "error",
-    //     content: "邮箱或密码错误",
-    //   });
+    // messageApi.open({
+    //   type: "error",
+    //   content: "邮箱或密码错误",
+    // });
     // } else {
     //   setUser(values);
     //   router.push("/view/chatPage");
     //   setLogin();
-    //   messageApi.open({
-    //     type: "success",
-    //     content: "登录成功",
-    //   });
+    // messageApi.open({
+    //   type: "success",
+    //   content: "登录成功",
+    // });
     // }
   };
   // // 注册
+
   const onFinishRegister = async (values: any) => {
+    const supabase = createClient();
+    const { error } = await supabase.auth.signUp({
+      email: values.email,
+      password: values.password,
+      options: {
+        emailRedirectTo: `/view/loginPage`, //这里配置的是自动跳转
+      },
+    });
+
+    if (error) throw error;
+    messageApi.open({
+      type: "success",
+      content: "注册成功",
+    });
+    // router.push("/view/loginPage");
+
+    // async function signUpNewUser() {
+    //   const { data, error } = await supabase.auth.signUp({
+    //     email: "valid.email@supabase.io",
+    //     password: "example-password",
+    //     options: {
+    //       emailRedirectTo: "https://example.com/welcome",
+    //     },
+    //   });
+    // }
     // const res = await registerService(values);
     // console.log("res:", res);
     // setUser(values);
