@@ -49,8 +49,8 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     request.nextUrl.pathname !== "/" &&
-    !request.nextUrl.pathname.startsWith("/view/loginPage") &&
-    !request.nextUrl.pathname.startsWith("/auth")
+    !request.nextUrl.pathname.startsWith("/view/loginPage")
+    // !request.nextUrl.pathname.startsWith("/auth")
   ) {
     // 没有登录，重定向到登录页
     const url = request.nextUrl.clone();
