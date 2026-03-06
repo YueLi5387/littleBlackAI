@@ -19,7 +19,7 @@ export function ChatInput(props: any) {
   const tochatDetail = () => {
     router.push("/view/chatPage/12345");
   };
-  const tochatDetailOrSubmit = () => {
+  const toChatDetailOrSubmit = () => {
     if (type === "chatHome") {
       tochatDetail();
     } else {
@@ -36,12 +36,18 @@ export function ChatInput(props: any) {
         size="large"
         autoSize={{ minRows: 3, maxRows: 4 }}
         style={{ boxShadow: "none" }}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            toChatDetailOrSubmit();
+          }
+        }}
       />
       <div className={styles.chatBtn}>
         <Button
           className={styles.btn}
           type="primary"
-          onClick={tochatDetailOrSubmit}
+          onClick={toChatDetailOrSubmit}
         >
           发送
         </Button>

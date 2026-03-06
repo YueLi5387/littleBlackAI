@@ -8,7 +8,7 @@ import { DefaultChatTransport } from "ai";
 
 export default function ChatPage() {
   const { messages, sendMessage } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/chat" }),
+    transport: new DefaultChatTransport({ api: "/api/message" }),
   });
 
   useEffect(() => {
@@ -25,7 +25,7 @@ export default function ChatPage() {
         <div key={message.id}>
           {message.role === "user" ? "User: " : "AI: "}
           {message.parts.map((part: any, index: number) =>
-            part.type === "text" ? <span key={index}>{part.text}</span> : null
+            part.type === "text" ? <span key={index}>{part.text}</span> : null,
           )}
         </div>
       ))}

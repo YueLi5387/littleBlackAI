@@ -39,6 +39,8 @@ export default function LoginPage() {
         type: "success",
         content: "登录成功",
       });
+      console.log("登录成功：", data);
+
       router.push("/view/chatPage");
     } catch (error: unknown) {
       messageApi.open({

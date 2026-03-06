@@ -1,19 +1,24 @@
-import Image from "next/image";
-import Link from "next/link"; // Next.js 内置链接组件
+"use client";
 import styles from "./app.module.scss";
 import { Button } from "antd";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
+  const router = useRouter();
+
   return (
     <div className={styles.app}>
       <div className={styles.content}>
         <div className={styles.title}>小黑</div>
         <div className={styles.subtitle}>最懂你的ai助手</div>
-        <Link style={{ textDecoration: "none" }} href="/view/loginPage">
-          <Button type="primary" size="large" className={styles.login}>
-            点击登录
-          </Button>
-        </Link>
+        <Button
+          type="primary"
+          size="large"
+          className={styles.login}
+          onClick={() => router.push("/view/loginPage")}
+        >
+          开始对话
+        </Button>
       </div>
       <div className={styles.footer}>
         <p>创作者:YueLi</p>

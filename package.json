@@ -19,10 +19,13 @@
     "ai": "^5.0.116",
     "antd": "^6.1.1",
     "axios": "^1.13.2",
+    "dotenv": "^17.2.3",
+    "drizzle-orm": "^0.45.1",
     "immer": "^11.1.0",
     "mysql": "^2.18.1",
     "next": "16.1.0",
     "openai": "^6.15.0",
+    "postgres": "^3.4.8",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
@@ -31,10 +34,12 @@
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.8",
     "eslint": "^9",
     "eslint-config-next": "16.1.0",
     "sass": "^1.97.1",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "^5",
     "zustand": "^5.0.9"
   }

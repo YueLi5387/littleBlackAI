@@ -1,34 +1,35 @@
 .footer {
-  width: 70%;
-  height: 100%;
-  // padding: 8px;
-  border: 1px solid #b7a5a5;
-  box-shadow: 5px 5px 10px 0px rgba($color: #744f4f, $alpha: 0.3);
+  width: 100%;
+  max-width: 900px;
+  height: auto;
+  padding: 8px 12px;
   border-radius: 10px;
   display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  gap: 12px;
+  align-items: flex-end;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
+  border: 1px solid rgba(16, 24, 40, 0.04);
+
   .textarea {
+    flex: 1 1 auto;
     width: 100%;
-    background-color: rgba($color: #ffffff, $alpha: 1);
+    background-color: transparent;
     border: none;
-    border-radius: 0px;
-    &:hover {
-      border: none;
-    }
-    &:active {
-      border: none;
-    }
+    resize: none;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-shadow: none;
   }
+
   .chatBtn {
-    padding: 3px 20px;
-    width: 100%;
-    flex: 1;
-    background-color: rgba($color: #ffffff, $alpha: 1);
     display: flex;
-    justify-content: end;
+    align-items: center;
+    justify-content: center;
     .btn {
-      height: 100%;
+      padding: 6px 14px;
+      height: 36px;
+      border-radius: 8px;
     }
   }
 }
