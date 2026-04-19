@@ -1,9 +1,20 @@
 .loginPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  box-sizing: border-box;
+  background: url("../../../../public/【哲风壁纸】卡通-小王子-星星.png")
+    no-repeat center / cover;
+  background-color: rgba(255, 255, 255, 0.82);
+  background-blend-mode: overlay;
+
   .login {
     width: 400px;
     height: 400px;
     background-color: rgba($color: #ffffff, $alpha: 0.9);
-    margin: 100px auto;
+    margin: 0 auto;
     padding: 10px;
 
     box-shadow: 0px 0px 10px rgba($color: #775656, $alpha: 0.3);

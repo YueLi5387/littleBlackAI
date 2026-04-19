@@ -1,19 +1,17 @@
 "use client";
-import { useEffect } from "react";
 import styles from "./chat.module.scss";
 
-import { ChatInput } from "@/component/chatInput/chatInput";
+import { ChatInput } from "@/components/chatInput/chatInput";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+
+type ChatPart = { type: string; text?: string };
+type ChatMessage = { id: string; role: string; parts: ChatPart[] };
 
 export default function ChatPage() {
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({ api: "/api/message" }),
   });
-
-  useEffect(() => {
-    console.log(messages);
-  }, [messages]);
 
   return (
     <div className={styles.chatPage}>
@@ -21,10 +19,10 @@ export default function ChatPage() {
         <p>你好，请问有什么可以帮你的吗？</p>
       </div>
 
-      {messages.map((message: any) => (
+      {(messages as ChatMessage[]).map((message) => (
         <div key={message.id}>
           {message.role === "user" ? "User: " : "AI: "}
-          {message.parts.map((part: any, index: number) =>
+          {message.parts.map((part, index) =>
             part.type === "text" ? <span key={index}>{part.text}</span> : null,
           )}
         </div>

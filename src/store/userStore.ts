@@ -12,30 +12,21 @@ export const useUserStore = create<UserStoreType>()(
         (set, get) => {
           return {
             user: null,
-            token: "", // 添加 token 属性
             setUser: (value: User) => {
-              set((state: any) => {
+              set((state) => {
                 state.user = value;
               });
             },
             getUser: (): User | null => {
               return get().user;
             },
-            setToken: (value: string) => {
-              set((state: any) => {
-                state.token = value;
-              });
-            },
-            getToken: (): string => {
-              return get().token;
-            },
           };
         },
         {
           name: "userStore",
           storage: createJSONStorage(() => localStorage),
-        }
-      )
-    )
-  )
+        },
+      ),
+    ),
+  ),
 );

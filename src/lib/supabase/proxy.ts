@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { ROUTES } from "@/lib/constants/routes";
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -19,17 +20,17 @@ export async function updateSession(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) =>
-            request.cookies.set(name, value)
+            request.cookies.set(name, value),
           );
           supabaseResponse = NextResponse.next({
             request,
           });
           cookiesToSet.forEach(({ name, value, options }) =>
-            supabaseResponse.cookies.set(name, value, options)
+            supabaseResponse.cookies.set(name, value, options),
           );
         },
       },
-    }
+    },
   );
 
   // 核心：校验用户会话
@@ -37,10 +38,10 @@ export async function updateSession(request: NextRequest) {
   // 否则可能导致用户会话随机失效，难以调试
   // getClaims()：获取当前用户的JWT声明（校验用户是否已登录，维持会话）
   // 重要：如果移除这行，服务端渲染时用户可能被随机登出
-  const { data } = await supabase.auth.getClaims();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  // 提取用户信息：data.claims包含用户的JWT载荷（未登录则为null/undefined）
-  const user = data?.claims;
   //未登录重定向逻辑
   // 条件：
   // 1. 无用户会话（!user）
@@ -49,12 +50,12 @@ export async function updateSession(request: NextRequest) {
   if (
     !user &&
     request.nextUrl.pathname !== "/" &&
-    !request.nextUrl.pathname.startsWith("/view/loginPage")
-    // !request.nextUrl.pathname.startsWith("/auth")
+    !request.nextUrl.pathname.startsWith(ROUTES.login) &&
+    !request.nextUrl.pathname.startsWith(ROUTES.authConfirm)
   ) {
     // 没有登录，重定向到登录页
     const url = request.nextUrl.clone();
-    url.pathname = "/view/loginPage";
+    url.pathname = ROUTES.login;
     // 返回重定向响应
     return NextResponse.redirect(url);
   }

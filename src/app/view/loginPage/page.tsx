@@ -1,13 +1,12 @@
 "use client";
 import { Button, Card, Checkbox, Form, Input, message, Segmented } from "antd";
 import styles from "./login.module.scss";
-import { useRef, useState } from "react";
-// import { useUserStore } from "@/store/userStore";
-import { useRouter } from "next/navigation";
-// import { CTX } from "../layout";
-// import { registerService } from "@/lib/api/user";
+import { useEffect, useRef, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { notification } from "antd";
+import type { FormInstance } from "antd";
+import { ROUTES } from "@/lib/constants/routes";
 
 export default function LoginPage() {
   const [head, setHead] = useState("登录");
@@ -15,22 +14,43 @@ export default function LoginPage() {
 
   // 路由跳转
   const router = useRouter();
-  const formRef = useRef(null);
+  const searchParams = useSearchParams();
+  const formRef = useRef<FormInstance | null>(null);
 
   const changeLogin = (value: string) => {
-    formRef.current!.resetFields(); //清空表单
+    formRef.current?.resetFields(); //清空表单
     setHead(value);
   };
   const [messageApi, contextHolder] = message.useMessage();
   const [notificationAPI, notificationHolder] = notification.useNotification();
 
+  useEffect(() => {
+    if (searchParams.get("auth_error") === "1") {
+      notificationAPI.warning({
+        message: "邮箱验证失败",
+        description: "验证链接已过期或无效，请重新注册或再次获取验证邮件。",
+      });
+    }
+  }, [notificationAPI, searchParams]);
+
   // 登录
   const supabase = createClient();
+  const getLoginErrorTip = (error: unknown) => {
+    if (!(error instanceof Error)) return "登录失败，请稍后重试~";
+    const normalized = error.message.toLowerCase();
+    if (normalized.includes("email not confirmed")) {
+      return "邮箱尚未验证，请先完成邮件验证后再登录。";
+    }
+    if (normalized.includes("invalid login credentials")) {
+      return "账号或密码错误，请检查后重试。";
+    }
+    return error.message;
+  };
 
-  const onFinishLogin = async (values: any) => {
+  const onFinishLogin = async (values: { email: string; password: string }) => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+      const { error } = await supabase.auth.signInWithPassword({
         email: values.email,
         password: values.password,
       });
@@ -39,41 +59,50 @@ export default function LoginPage() {
         type: "success",
         content: "登录成功",
       });
-      console.log("登录成功：", data);
-
-      router.push("/view/chatPage");
+      router.push(ROUTES.chatHome);
     } catch (error: unknown) {
       messageApi.open({
         type: "error",
-        content:
-          error instanceof Error ? error.message : "登录失败，请稍后重试~",
-      });
-      notificationAPI["warning"]({
-        title: "温馨提示",
-        description: "请查看邮箱，确保您已校验用户身份。",
+        content: getLoginErrorTip(error),
       });
     } finally {
       setIsLoading(false);
     }
   };
   // 注册
-
-  const onFinishRegister = async (values: any) => {
+  const onFinishRegister = async (values: {
+    email: string;
+    password: string;
+  }) => {
     setIsLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: values.email,
-      password: values.password,
-      options: {
-        emailRedirectTo: `/view/loginPage`, //这里配置的是自动跳转
-      },
-    });
-    setIsLoading(false);
-    if (error) throw error;
-    notificationAPI["warning"]({
-      title: "注册成功",
-      description: "请查看邮箱信息点击验证链接确认您的身份，验证后才可登录。",
-    });
-    changeLogin("登录");
+    try {
+      const emailRedirectTo = `${window.location.origin}${
+        ROUTES.authConfirm
+      }?next=${encodeURIComponent(ROUTES.chatHome)}`;
+
+      const { error } = await supabase.auth.signUp({
+        email: values.email,
+        password: values.password,
+        options: {
+          emailRedirectTo,
+        },
+      });
+      if (error) throw error;
+
+      notificationAPI["warning"]({
+        title: "注册成功",
+        description: "请查看邮箱信息点击验证链接确认您的身份，验证后才可登录。",
+      });
+      changeLogin("登录");
+    } catch (error: unknown) {
+      messageApi.open({
+        type: "error",
+        content:
+          error instanceof Error ? error.message : "注册失败，请稍后重试~",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -103,7 +132,10 @@ export default function LoginPage() {
               <Form.Item
                 label="邮箱"
                 name="email"
-                rules={[{ required: true, message: "请输入邮箱！" }]}
+                rules={[
+                  { required: true, message: "请输入邮箱！" },
+                  { type: "email", message: "请输入正确的邮箱格式！" },
+                ]}
               >
                 <Input />
               </Form.Item>
@@ -111,7 +143,10 @@ export default function LoginPage() {
               <Form.Item
                 label="密码"
                 name="password"
-                rules={[{ required: true, message: "请输入密码！" }]}
+                rules={[
+                  { required: true, message: "请输入密码！" },
+                  { min: 6, message: "密码至少 6 位！" },
+                ]}
               >
                 <Input.Password />
               </Form.Item>
@@ -140,7 +175,10 @@ export default function LoginPage() {
               <Form.Item
                 label="邮箱"
                 name="email"
-                rules={[{ required: true, message: "请输入邮箱！" }]}
+                rules={[
+                  { required: true, message: "请输入邮箱！" },
+                  { type: "email", message: "请输入正确的邮箱格式！" },
+                ]}
               >
                 <Input />
               </Form.Item>
@@ -148,7 +186,10 @@ export default function LoginPage() {
               <Form.Item
                 label="密码"
                 name="password"
-                rules={[{ required: true, message: "请输入密码！" }]}
+                rules={[
+                  { required: true, message: "请输入密码！" },
+                  { min: 6, message: "密码至少 6 位！" },
+                ]}
               >
                 <Input.Password />
               </Form.Item>
@@ -158,8 +199,10 @@ export default function LoginPage() {
                 rules={[
                   { required: true, message: "请再次输入密码！" },
                   {
-                    validator: (rule, value) => {
-                      if (value !== formRef.current.getFieldValue("password")) {
+                    validator: (_, value) => {
+                      if (
+                        value !== formRef.current?.getFieldValue("password")
+                      ) {
                         return Promise.reject("两次密码不一致！");
                       }
                       return Promise.resolve();

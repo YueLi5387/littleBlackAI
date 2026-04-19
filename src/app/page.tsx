@@ -2,6 +2,7 @@
 import styles from "./app.module.scss";
 import { Button } from "antd";
 import { useRouter } from "next/navigation";
+import { ROUTES } from "@/lib/constants/routes";
 
 export default function Home() {
   const router = useRouter();
@@ -15,7 +16,7 @@ export default function Home() {
           type="primary"
           size="large"
           className={styles.login}
-          onClick={() => router.push("/view/loginPage")}
+          onClick={() => router.push(ROUTES.login)}
         >
           开始对话
         </Button>
