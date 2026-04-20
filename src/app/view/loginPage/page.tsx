@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { notification } from "antd";
 import type { FormInstance } from "antd";
 import { ROUTES } from "@/lib/constants/routes";
+import { useUserStore } from "@/store/userStore";
 
 export default function LoginPage() {
   const [head, setHead] = useState("登录");
@@ -16,9 +17,20 @@ export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const formRef = useRef<FormInstance | null>(null);
+  const { user, setUser } = useUserStore();
 
   const changeLogin = (value: string) => {
     formRef.current?.resetFields(); //清空表单
+    // 如果是切换到登录，且仓库有存储的用户信息，则自动填充
+    if (value === "登录" && user) {
+      setTimeout(() => {
+        formRef.current?.setFieldsValue({
+          email: user.username,
+          password: user.password,
+          remember: true,
+        });
+      }, 0);
+    }
     setHead(value);
   };
   const [messageApi, contextHolder] = message.useMessage();
@@ -31,7 +43,15 @@ export default function LoginPage() {
         description: "验证链接已过期或无效，请重新注册或再次获取验证邮件。",
       });
     }
-  }, [notificationAPI, searchParams]);
+    // 初始进入页面，如果仓库有用户信息，自动填充
+    if (head === "登录" && user) {
+      formRef.current?.setFieldsValue({
+        email: user.username,
+        password: user.password,
+        remember: true,
+      });
+    }
+  }, [notificationAPI, searchParams, user, head]);
 
   // 登录
   const supabase = createClient();
@@ -47,7 +67,11 @@ export default function LoginPage() {
     return error.message;
   };
 
-  const onFinishLogin = async (values: { email: string; password: string }) => {
+  const onFinishLogin = async (values: {
+    email: string;
+    password: string;
+    remember: boolean;
+  }) => {
     setIsLoading(true);
     try {
       const { error } = await supabase.auth.signInWithPassword({
@@ -55,6 +79,14 @@ export default function LoginPage() {
         password: values.password,
       });
       if (error) throw error;
+
+      // 处理“记住我”逻辑
+      if (values.remember) {
+        setUser({ username: values.email, password: values.password });
+      } else {
+        setUser(null);
+      }
+
       messageApi.open({
         type: "success",
         content: "登录成功",

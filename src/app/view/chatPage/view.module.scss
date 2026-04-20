@@ -4,6 +4,8 @@
   .left {
     position: relative;
     transition: all 0.3s ease-in-out;
+    height: 100%;
+    overflow-y: auto;
     .cover {
       position: absolute;
       top: 0;

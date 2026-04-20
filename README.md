@@ -38,8 +38,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ```
 问题:
 1.需要往ai接入工具，其现在的知识库只更新到2023年
-2.登录token过期没有处理
-3.数据库create_at时间不正确
+3.数据库create_at时间不正确   ---ok
 4.程序只能保存文字，如果web端上传图片，也需要保存到数据库
 ```
 
@@ -48,9 +47,13 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 1.加多几种ai模型
 2.优化样式
 3.考虑接入rag
-4.性能埋点监控5.react-query
-6.新增修改对话名字的api
-7.记住密码功能
+4.性能埋点监控
+5.react-query
+6.新增修改对话名字的api   ---ok
+7.记住密码功能  --ok
 8.把更改对话组标题的放到存数据库之前  ---ok
-9.增加退出登录按钮，还要看一下目前项目登录有没有token
+9.增加退出登录按钮  ---ok
+10.加一个中断回答和删除回答按钮
+11.监控线上bug
+12.性能埋点
 ```

@@ -50,6 +50,61 @@
     max-width: 640px;
   }
 
+  .bubbleWrap {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.75;
+  }
+
+  .deleteIcon {
+    cursor: pointer;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.45);
+    transition: color 0.2s ease;
+  }
+
+  .deleteIcon:hover {
+    color: #ff4d4f;
+  }
+
+  .markdownBody {
+    :global(p) {
+      margin: 0 0 8px;
+    }
+
+    :global(p:last-child) {
+      margin-bottom: 0;
+    }
+
+    :global(pre) {
+      overflow-x: auto;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: rgba(0, 0, 0, 0.04);
+      margin: 8px 0;
+    }
+
+    :global(code) {
+      font-family:
+        ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+      font-size: 13px;
+    }
+
+    :global(ul),
+    :global(ol) {
+      margin: 6px 0;
+      padding-left: 20px;
+    }
+  }
+
   .ai .bubble {
     background: #ffffff;
     color: #222;

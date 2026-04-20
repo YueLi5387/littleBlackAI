@@ -10,11 +10,25 @@ import styles from "./view.module.scss";
 import http from "@/lib/utils/http";
 import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
+import { createClient } from "@/lib/supabase/client";
+import dayjs from "dayjs";
 
 const { Header, Sider, Content } = Layout;
+
+type ChatItem = {
+  id: string | number;
+  title: string;
+  createdAt: string;
+};
+
+type ChatListResponse = {
+  code: number;
+  data: ChatItem[];
+};
+
 export const Ctx = React.createContext<{
-  chat: any[];
-  setChat: React.Dispatch<React.SetStateAction<any[]>>;
+  chat: ChatItem[];
+  setChat: React.Dispatch<React.SetStateAction<ChatItem[]>>;
 } | null>(null);
 
 export default function ChatLayout({
@@ -28,14 +42,18 @@ export default function ChatLayout({
   const {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken();
+  const supabase = createClient();
+  const [chat, setChat] = useState<ChatItem[]>([]);
 
-  const [chat, setChat] = useState<any[]>([]);
+  // 获取当前对话标题
+  const currentChat = chat.find((item) => String(item.id) === params.chat_id);
+  const headerTitle = currentChat?.title || "新对话";
 
   // 进入页面拉取聊天列表
   useEffect(() => {
     const fetchChats = async () => {
       try {
-        const res = (await http.get("/api/chat")) as any;
+        const res = (await http.get("/api/chat")) as ChatListResponse;
         if (res.code === 0) {
           setChat(res.data);
         }
@@ -54,6 +72,12 @@ export default function ChatLayout({
   // 跳转特定对话组
   const handleMenuClick = ({ key }: { key: string }) => {
     router.push(ROUTES.chatDetail(key));
+  };
+
+  // 退出登录
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.replace(ROUTES.login);
   };
 
   return (
@@ -82,7 +106,38 @@ export default function ChatLayout({
           onClick={handleMenuClick}
           items={chat.map((item) => ({
             key: String(item.id),
-            label: item.title,
+            label: (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "5px",
+                  lineHeight: "1.2",
+                  padding: "4px 0",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "16px",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {item.title}
+                </span>
+                {!collapsed && (
+                  <span
+                    style={{
+                      fontSize: "10px",
+                      color: "rgba(255, 255, 255, 0.45)",
+                    }}
+                  >
+                    {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+                  </span>
+                )}
+              </div>
+            ),
           }))}
         />
       </Sider>
@@ -101,8 +156,10 @@ export default function ChatLayout({
               height: 64,
             }}
           />
-          <h1 className={styles.title}>标题</h1>
-          <Button type="text">退出登录</Button>
+          <h1 className={styles.title}>{headerTitle}</h1>
+          <Button type="text" onClick={handleLogout}>
+            退出登录
+          </Button>
         </Header>
         <Content
           style={{

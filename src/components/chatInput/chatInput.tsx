@@ -12,9 +12,16 @@ type ChatInputMode = "chatHome" | "chatDetail";
 type ChatInputProps = {
   type: ChatInputMode;
   sendMessage?: (payload: { text: string }) => void;
+  isResponding?: boolean;
+  onStop?: () => void;
 };
 
-export function ChatInput({ sendMessage, type }: ChatInputProps) {
+export function ChatInput({
+  sendMessage,
+  type,
+  isResponding = false,
+  onStop,
+}: ChatInputProps) {
   const [input, setInput] = useState("");
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const router = useRouter();
@@ -46,7 +53,6 @@ export function ChatInput({ sendMessage, type }: ChatInputProps) {
       // console.log("看聊天组是否创建成功", res.data);
 
       const query = new URLSearchParams({ question }).toString();
-      console.log("query--->", query);
       router.push(`${ROUTES.chatDetail(res.data.chatId)}?${query}`);
       setInput("");
     } catch (error) {
@@ -61,6 +67,11 @@ export function ChatInput({ sendMessage, type }: ChatInputProps) {
   };
 
   const toChatDetailOrSubmit = async () => {
+    if (isResponding && type === "chatDetail") {
+      onStop?.();
+      return;
+    }
+
     const question = input.trim();
     if (!question) return;
 
@@ -90,11 +101,11 @@ export function ChatInput({ sendMessage, type }: ChatInputProps) {
       <div className={styles.chatBtn}>
         <Button
           className={styles.btn}
-          type="primary"
+          type={isResponding && type === "chatDetail" ? "default" : "primary"}
           onClick={() => void toChatDetailOrSubmit()}
           loading={isCreatingChat}
         >
-          发送
+          {isResponding && type === "chatDetail" ? "中断" : "发送"}
         </Button>
       </div>
     </div>

@@ -1,5 +1,5 @@
 import { drizzle } from "drizzle-orm/postgres-js";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 import postgres from "postgres";
 import { chatsTable, messagesTable } from "@/db/schema";
 
@@ -71,4 +71,26 @@ export const getAllMessages = async (chatId: number) => {
     .from(messagesTable)
     .where(eq(messagesTable.chatId, chatId))
     .orderBy(messagesTable.createdAt);
+};
+
+// 根据 id 查询聊天组（用于权限校验）
+export const getChatById = async (chatId: number) => {
+  const [chat] = await db
+    .select()
+    .from(chatsTable)
+    .where(eq(chatsTable.id, chatId));
+
+  return chat ?? null;
+};
+
+// 删除指定对话中的某一条消息
+export const deleteMessageById = async (chatId: number, messageId: number) => {
+  const [deleted] = await db
+    .delete(messagesTable)
+    .where(
+      and(eq(messagesTable.chatId, chatId), eq(messagesTable.id, messageId)),
+    )
+    .returning({ id: messagesTable.id });
+
+  return deleted ?? null;
 };

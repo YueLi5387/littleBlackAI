@@ -1,12 +1,10 @@
 import axios, {
   AxiosError,
   type AxiosInstance,
-  type AxiosRequestHeaders,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
 } from "axios";
 import { message } from "antd";
-import { useUserStore } from "../../store/userStore";
 import { ROUTES } from "@/lib/constants/routes";
 
 // 基地址

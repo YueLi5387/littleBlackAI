@@ -8,26 +8,29 @@ const deepSeek = createDeepSeek({
   apiKey: DEEPSEEK_API_KEY, //设置API密钥
 });
 
+type ClientMessagePart = {
+  type?: string;
+  text?: string;
+};
+
+type ClientMessage = {
+  role?: string;
+  parts?: ClientMessagePart[];
+};
+
 // 生成聊天信息
 export async function POST(req: NextRequest) {
   const chatIdParam = req.nextUrl.searchParams.get("chatId");
   const chatId = chatIdParam ? Number(chatIdParam) : null;
-  const payload = (await req.json()) as { messages?: any[] }; //前端useChat钩子在发送请求时，会自动把当前页面的所有历史对话内容打包放在 messages 数组里传给后端
+  const payload = (await req.json()) as { messages?: ClientMessage[] }; //前端useChat钩子在发送请求时，会自动把当前页面的所有历史对话内容打包放在 messages 数组里传给后端
   const messages = Array.isArray(payload.messages) ? payload.messages : [];
 
   // 检查是否是第一条消息，如果是，则生成标题
   const isFirstMessage = messages.length <= 1;
 
-  const latestUserMessage = [...messages]
-    .reverse()
-    .find(
-      (message: {
-        role?: string;
-        parts?: { type?: string; text?: string }[];
-      }) => {
-        return message.role === "user";
-      },
-    );
+  const latestUserMessage = [...messages].reverse().find((message) => {
+    return message.role === "user";
+  });
 
   // 把用户最新消息的文字内容拼接起来，用户发的最新消息可能是：
   // parts: [
@@ -72,7 +75,7 @@ export async function POST(req: NextRequest) {
     model: deepSeek("deepseek-chat"), //使用deepseek-chat模型
     messages: convertToModelMessages(messages), //转换成ai厂商需要的格式
     system:
-      "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，是人类的好帮手", //系统提示词
+      "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，是人类的好帮手。", //系统提示词
     // 当流式响应返回完成时调用，将生成的文本保存到数据库中
     onFinish: async ({ text }) => {
       if (!chatId || !Number.isFinite(chatId)) return;

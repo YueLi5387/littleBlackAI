@@ -30,3 +30,21 @@ body {
   list-style: none;
   box-sizing: border-box;
 }
+/* 全局滚动条样式 - 适配 Webkit 浏览器（Chrome、Edge） */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+/* 选中滚动条的「轨道 / 背景槽」 */
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+}
+/* 选中滚动条「可拖动的滑块」 */
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+}
+/* 鼠标悬停在滑块上时的样式 */
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}

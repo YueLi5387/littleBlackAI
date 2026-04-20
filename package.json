@@ -19,6 +19,7 @@
     "ai": "^5.0.116",
     "antd": "^6.1.1",
     "axios": "^1.13.2",
+    "dayjs": "^1.11.20",
     "dotenv": "^17.2.3",
     "drizzle-orm": "^0.45.1",
     "immer": "^11.1.0",
@@ -27,7 +28,10 @@
     "openai": "^6.15.0",
     "postgres": "^3.4.8",
     "react": "19.2.3",
-    "react-dom": "19.2.3"
+    "react-dom": "19.2.3",
+    "react-markdown": "^10.1.0",
+    "remark-breaks": "^4.0.0",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
