@@ -40,6 +40,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 1.需要往ai接入工具，其现在的知识库只更新到2023年
 3.数据库create_at时间不正确   ---ok
 4.程序只能保存文字，如果web端上传图片，也需要保存到数据库
+5.ai对话输出特别卡顿      ---ok  在ai输出时使用普通样式，输出完成后转md
+6.并且跳转其他对话组的时候上一个对话组内容会消失
 ```
 
 ```
@@ -53,7 +55,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 7.记住密码功能  --ok
 8.把更改对话组标题的放到存数据库之前  ---ok
 9.增加退出登录按钮  ---ok
-10.加一个中断回答和删除回答按钮
+10.加一个中断回答和删除回答按钮 ---ok
 11.监控线上bug
 12.性能埋点
 ```

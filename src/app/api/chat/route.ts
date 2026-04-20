@@ -30,7 +30,6 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const res = await req.json();
-    console.log("res--->", res);
     const { title, model } = res;
     const supabase = await createClient();
     const {

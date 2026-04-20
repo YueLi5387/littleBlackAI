@@ -1,11 +1,10 @@
 "use client";
-import { useContext } from "react";
+import { memo, useContext, useEffect, useRef } from "react";
 import styles from "./chatDetail.module.scss";
 
 import { ChatInput } from "@/components/chatInput/chatInput";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { useEffect, useRef } from "react";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { Ctx } from "../layout";
@@ -14,7 +13,6 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { message, Popconfirm } from "antd";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
-import { memo } from "react";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = {
@@ -49,6 +47,65 @@ type DeleteMessageResponse = {
   code: number;
 };
 
+// 抽取单个消息组件以利用 React.memo 减少重渲染
+const MemoizedReactMarkdown = memo(ReactMarkdown);
+const REMARK_PLUGINS = [remarkGfm];
+
+const MessageItem = memo(
+  ({
+    message,
+    isStreaming,
+    onDelete,
+  }: {
+    message: ChatMessage;
+    isStreaming: boolean;
+    onDelete: (aiId: string) => void;
+  }) => {
+    return (
+      <div
+        className={`${styles.message} ${
+          message.role === "user" ? styles.user : styles.ai
+        }`}
+      >
+        <div className={styles.bubbleWrap}>
+          <div className={styles.bubble}>
+            {message.parts.map((part, pIndex) =>
+              part.type === "text" ? (
+                isStreaming ? (
+                  <pre key={pIndex} className={styles.streamingText}>
+                    {part.text ?? ""}
+                  </pre>
+                ) : (
+                  <div key={pIndex} className={styles.markdownBody}>
+                    <MemoizedReactMarkdown remarkPlugins={REMARK_PLUGINS}>
+                      {part.text ?? ""}
+                    </MemoizedReactMarkdown>
+                  </div>
+                )
+              ) : null,
+            )}
+          </div>
+          {message.role === "assistant" && (
+            <div className={styles.actions}>
+              <Popconfirm
+                title="删除本条回答"
+                description="确认删除这条 AI 回答吗？"
+                okText="删除"
+                cancelText="取消"
+                onConfirm={() => onDelete(message.id)}
+              >
+                <DeleteOutlined className={styles.deleteIcon} />
+              </Popconfirm>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  },
+);
+
+MessageItem.displayName = "MessageItem";
+
 export default function ChatPageDeatil() {
   const params = useParams<{ chat_id: string }>();
   const searchParams = useSearchParams();
@@ -56,7 +113,6 @@ export default function ChatPageDeatil() {
   const context = useContext(Ctx);
   const hasAutoAskedRef = useRef(false);
   const chatId = params.chat_id;
-  const MemoizedReactMarkdown = memo(ReactMarkdown);
 
   const { messages, sendMessage, setMessages, status, stop } = useChat({
     transport: new DefaultChatTransport({
@@ -156,45 +212,19 @@ export default function ChatPageDeatil() {
     <div className={styles.chatDetailPage}>
       <div className={styles.content}>
         {(messages as ChatMessage[]).map((message, index) => (
-          <div
+          <MessageItem
             key={message.id}
-            className={`${styles.message} ${
-              message.role === "user" ? styles.user : styles.ai
-            }`}
-          >
-            <div className={styles.bubbleWrap}>
-              {/* md格式渲染 */}
-              <div className={styles.bubble}>
-                {message.parts.map((part, index) =>
-                  part.type === "text" ? (
-                    <div key={index} className={styles.markdownBody}>
-                      <MemoizedReactMarkdown remarkPlugins={[remarkGfm]}>
-                        {part.text ?? ""}
-                      </MemoizedReactMarkdown>
-                    </div>
-                  ) : null,
-                )}
-              </div>
-              {message.role === "assistant" && (
-                <div className={styles.actions}>
-                  <Popconfirm
-                    title="删除本条回答"
-                    description="确认删除这条 AI 回答吗？"
-                    okText="删除"
-                    cancelText="取消"
-                    onConfirm={() =>
-                      void handleDeleteAssistantReply(
-                        message.id,
-                        messages[index - 1].id,
-                      )
-                    }
-                  >
-                    <DeleteOutlined className={styles.deleteIcon} />
-                  </Popconfirm>
-                </div>
-              )}
-            </div>
-          </div>
+            message={message}
+            isStreaming={
+              status === "streaming" &&
+              index === messages.length - 1 &&
+              message.role === "assistant"
+            }
+            onDelete={(aiId) => {
+              const userMsgId = messages[index - 1]?.id;
+              if (userMsgId) void handleDeleteAssistantReply(aiId, userMsgId);
+            }}
+          />
         ))}
         {/* 让最新消息一直显示在底部 */}
         <div ref={latestMsgRef}></div>

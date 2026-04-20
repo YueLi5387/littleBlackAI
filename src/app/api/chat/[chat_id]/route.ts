@@ -20,7 +20,6 @@ export async function GET(
     }
 
     const chatId = Number(chat_id);
-    console.log("chatId--->", chatId);
     if (isNaN(chatId)) {
       return NextResponse.json(
         { code: 1, message: "无效的聊天ID" },
@@ -29,7 +28,6 @@ export async function GET(
     }
 
     const messages = await getAllMessages(chatId);
-    console.log("获取所有message-->", messages);
 
     // 转换为前端 useChat 需要的格式
     const formattedMessages = messages.map((msg) => ({
