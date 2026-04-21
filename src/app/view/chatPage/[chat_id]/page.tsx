@@ -147,10 +147,10 @@ export default function ChatPageDeatil() {
         if (res.code === 0) {
           // 将数据库格式转换为 useChat 需要的格式
           const history = res.data.map((msg) => ({
-            id: msg.id,
-            role: msg.role,
+            id: String(msg.id),
+            role: msg.role as "user" | "assistant" | "system",
             content: msg.content,
-            parts: [{ type: "text", text: msg.content }],
+            parts: [{ type: "text" as const, text: msg.content }],
           }));
           setMessages(history);
         }

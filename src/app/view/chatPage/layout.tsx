@@ -18,7 +18,7 @@ const { Header, Sider, Content } = Layout;
 type ChatItem = {
   id: string | number;
   title: string;
-  createdAt: string;
+  createdAt?: string;
 };
 
 type ChatListResponse = {

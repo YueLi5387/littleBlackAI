@@ -9,13 +9,13 @@ const deepSeek = createDeepSeek({
 });
 
 type ClientMessagePart = {
-  type?: string;
-  text?: string;
+  type: "text";
+  text: string;
 };
 
 type ClientMessage = {
-  role?: string;
-  parts?: ClientMessagePart[];
+  role: "user" | "assistant" | "system";
+  parts: ClientMessagePart[];
 };
 
 // 生成聊天信息

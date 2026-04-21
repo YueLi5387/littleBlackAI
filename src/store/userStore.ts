@@ -12,7 +12,7 @@ export const useUserStore = create<UserStoreType>()(
         (set, get) => {
           return {
             user: null,
-            setUser: (value: User) => {
+            setUser: (value: User | null) => {
               set((state) => {
                 state.user = value;
               });

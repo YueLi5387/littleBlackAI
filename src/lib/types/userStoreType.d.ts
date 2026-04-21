@@ -3,7 +3,7 @@ export type UserStoreType = {
     username: string;
     password: string;
   } | null;
-  setUser: (value: { username: string; password: string }) => void;
+  setUser: (value: { username: string; password: string } | null) => void;
   getUser: () => { username: string; password: string } | null;
 };
 

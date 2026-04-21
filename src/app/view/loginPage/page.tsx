@@ -1,7 +1,7 @@
 "use client";
 import { Button, Card, Checkbox, Form, Input, message, Segmented } from "antd";
 import styles from "./login.module.scss";
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { notification } from "antd";
@@ -9,7 +9,7 @@ import type { FormInstance } from "antd";
 import { ROUTES } from "@/lib/constants/routes";
 import { useUserStore } from "@/store/userStore";
 
-export default function LoginPage() {
+function LoginContent() {
   const [head, setHead] = useState("登录");
   const [isLoading, setIsLoading] = useState(false); //加载状态
 
@@ -255,5 +255,13 @@ export default function LoginPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
   );
 }
