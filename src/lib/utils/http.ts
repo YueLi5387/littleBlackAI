@@ -8,7 +8,7 @@ import { message } from "antd";
 import { ROUTES } from "@/lib/constants/routes";
 
 // 基地址
-const baseURL: string = "http://localhost:3000";
+const baseURL: string = process.env.AXIOS_BASE_URL!;
 
 const http: AxiosInstance = axios.create({
   baseURL,
