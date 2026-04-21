@@ -6,7 +6,6 @@ import { ROUTES } from "@/lib/constants/routes";
 
 export default function Home() {
   const router = useRouter();
-
   return (
     <div className={styles.app}>
       <div className={styles.content}>

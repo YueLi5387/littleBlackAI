@@ -42,6 +42,8 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 4.程序只能保存文字，如果web端上传图片，也需要保存到数据库
 5.ai对话输出特别卡顿      ---ok  在ai输出时使用普通样式，输出完成后转md
 6.并且跳转其他对话组的时候上一个对话组内容会消失
+7.断网时错误监控无法上报
+8.创建新对话时用户的第一句问题可能会被吞掉
 ```
 
 ```
@@ -59,4 +61,5 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 11.监控线上bug
 12.性能埋点
 13.给代码加一个loading遮罩层，相应太慢了
+14.监控页面侧边栏需要能够收缩
 ```

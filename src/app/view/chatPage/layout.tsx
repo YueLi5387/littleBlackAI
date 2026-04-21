@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -12,6 +12,7 @@ import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { createClient } from "@/lib/supabase/client";
 import dayjs from "dayjs";
+import throttle from "lodash/throttle";
 
 const { Header, Sider, Content } = Layout;
 
@@ -44,12 +45,13 @@ export default function ChatLayout({
   } = theme.useToken();
   const supabase = createClient();
   const [chat, setChat] = useState<ChatItem[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // 获取当前对话标题
   const currentChat = chat.find((item) => String(item.id) === params.chat_id);
   const headerTitle = currentChat?.title || "新对话";
 
-  // 进入页面拉取聊天列表
+  // 进入页面拉取聊天列表和管理员状态
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -61,23 +63,69 @@ export default function ChatLayout({
         console.error("获取聊天列表失败:", error);
       }
     };
+    // 判断是不是管理员，是管理员显示“监控按钮”
+    const checkAdmin = async () => {
+      try {
+        const res = (await http.get("/api/admin/check")) as {
+          code: number;
+          data: { isAdmin: boolean };
+        };
+        if (res.code === 0) {
+          setIsAdmin(res.data.isAdmin);
+        }
+      } catch (error) {
+        console.error("检查管理员状态失败:", error);
+      }
+    };
+
     fetchChats();
+    checkAdmin();
   }, []);
 
   // 新建对话
-  const handleNewChat = () => {
-    router.push(ROUTES.chatHome);
-  };
+  const handleNewChat = useCallback(
+    throttle(
+      () => {
+        router.push(ROUTES.chatHome);
+      },
+      1000,
+      { trailing: false },
+    ),
+    [router],
+  );
 
   // 跳转特定对话组
   const handleMenuClick = ({ key }: { key: string }) => {
     router.push(ROUTES.chatDetail(key));
   };
 
+  // 跳转监控页面
+  const handleGoSupervise = useCallback(
+    throttle(
+      () => {
+        router.push(ROUTES.supervise);
+      },
+      1000,
+      { trailing: false },
+    ),
+    [router],
+  );
+
   // 退出登录
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace(ROUTES.login);
+  const handleLogout = useCallback(
+    throttle(
+      async () => {
+        await supabase.auth.signOut();
+        router.replace(ROUTES.login);
+      },
+      1000,
+      { trailing: false },
+    ),
+    [supabase.auth, router],
+  );
+  const test = () => {
+    console.log("dsds", oooo);
+    http.get("/api/sss");
   };
 
   return (
@@ -146,6 +194,11 @@ export default function ChatLayout({
           style={{ padding: 0, background: colorBgContainer }}
           className={styles.header}
         >
+          {/* --------- */}
+
+          <button onClick={() => test()}>dihdiwhdiwh</button>
+          {/* --------- */}
+
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -157,9 +210,16 @@ export default function ChatLayout({
             }}
           />
           <h1 className={styles.title}>{headerTitle}</h1>
-          <Button type="text" onClick={handleLogout}>
-            退出登录
-          </Button>
+          <div style={{ display: "flex", gap: "10px" }}>
+            {isAdmin && (
+              <Button type="primary" ghost onClick={handleGoSupervise}>
+                监控
+              </Button>
+            )}
+            <Button type="primary" ghost onClick={handleLogout}>
+              退出登录
+            </Button>
+          </div>
         </Header>
         <Content
           style={{

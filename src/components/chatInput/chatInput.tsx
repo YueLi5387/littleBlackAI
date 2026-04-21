@@ -50,7 +50,6 @@ export function ChatInput({
       if (!res.data?.chatId) {
         throw new Error(res.message || "创建聊天组失败");
       }
-      // console.log("看聊天组是否创建成功", res.data);
 
       const query = new URLSearchParams({ question }).toString();
       router.push(`${ROUTES.chatDetail(res.data.chatId)}?${query}`);

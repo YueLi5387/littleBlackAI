@@ -1,0 +1,105 @@
+.layout {
+  height: 100vh;
+  background: #f5f5f5;
+
+  .left {
+    background: #001529;
+    overflow: hidden;
+    border-right: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+
+    .listContainer {
+      flex: 1;
+      overflow-y: auto;
+
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 3px;
+      }
+    }
+    // ... rest of left styles
+  }
+
+  .right {
+    // ...
+    .content {
+      flex: 1;
+      padding: 20px;
+      overflow-y: auto;
+      background: #f0f2f5;
+
+      .detailContainer {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        max-width: 1200px;
+        margin: 0 auto;
+
+        .infoCard,
+        .playerCard {
+          background: #fff;
+          padding: 20px;
+          border-radius: 8px;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+          h3 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            font-size: 16px;
+            color: #1f1f1f;
+            border-left: 4px solid #1890ff;
+            padding-left: 12px;
+          }
+        }
+
+        .errorBrief {
+          p {
+            margin: 8px 0;
+            color: #595959;
+          }
+        }
+
+        .stackTrace {
+          margin-top: 16px;
+          pre {
+            background: #fafafa;
+            padding: 12px;
+            border: 1px solid #f0f0f0;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #ff4d4f;
+            max-height: 300px;
+            overflow: auto;
+          }
+        }
+
+        .playerCard {
+          .playerHeader {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+          }
+
+          .playerWrapper {
+            background: #000;
+            border-radius: 4px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+
+            .rrwebPlayer {
+              // 覆盖 rrweb-player 的默认背景
+              :global(.rr-player) {
+                background: #000;
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

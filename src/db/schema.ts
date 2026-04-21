@@ -6,6 +6,7 @@ import {
   text,
   timestamp,
   varchar,
+  jsonb,
 } from "drizzle-orm/pg-core";
 
 export const chatsTable = pgTable(
@@ -33,3 +34,11 @@ export const messagesTable = pgTable(
   },
   (table) => [index("messages_chat_id_idx").on(table.chatId)],
 );
+
+// 错误监控存储表
+export const errorEventsTable = pgTable("error_events", {
+  id: serial("id").primaryKey(),
+  error: jsonb("error").notNull(),
+  events: jsonb("events").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
