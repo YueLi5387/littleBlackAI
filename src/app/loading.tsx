@@ -17,9 +17,9 @@ export default function Loading() {
         zIndex: 9999,
       }}
     >
-      <Spin size="large" tip="正在加载页面..." />
+      <Spin size="large" />
       <div style={{ marginTop: 16, color: "#1890ff", fontWeight: 500 }}>
-        请稍候
+        正在加载页面，请稍候...
       </div>
     </div>
   );

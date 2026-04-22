@@ -1,0 +1,28 @@
+{
+  "common": {
+    "newChat": "新規チャット",
+    "logout": "ログアウト",
+    "monitor": "モニター",
+    "send": "送信",
+    "stop": "停止",
+    "placeholder": "内容を入力してください。Shift + Enterで改行します",
+    "thinking": "考え中...",
+    "errorDetail": "エラー詳細",
+    "performanceMonitor": "パフォーマンス",
+    "errorMonitor": "エラーログ",
+    "noRecord": "記録なし",
+    "back": "戻る",
+    "avgLoadTime": "平均ロード時間",
+    "avgApiLatency": "平均 API 遅延",
+    "totalReports": "レポート総数",
+    "activePaths": "本日のアクティブパス",
+    "detailMetrics": "詳細パフォーマンス指標",
+    "selectError": "左側のエラーを選択して詳細を表示してください"
+  },
+  "chat": {
+    "welcome": "こんにちは、何かお手伝いできることはありますか？",
+    "deleteConfirm": "このAIの回答を削除してもよろしいですか？",
+    "deleteSuccess": "AIの回答を削除しました",
+    "createFailed": "チャットグループの作成に失敗しました"
+  }
+}

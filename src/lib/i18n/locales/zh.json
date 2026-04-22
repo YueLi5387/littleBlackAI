@@ -1,0 +1,28 @@
+{
+  "common": {
+    "newChat": "新建对话",
+    "logout": "退出登录",
+    "monitor": "监控",
+    "send": "发送",
+    "stop": "停止",
+    "placeholder": "请输入内容，Shift + Enter 换行",
+    "thinking": "思考中...",
+    "errorDetail": "错误详情",
+    "performanceMonitor": "性能监控",
+    "errorMonitor": "错误监控",
+    "noRecord": "暂无记录",
+    "back": "返回",
+    "avgLoadTime": "平均加载时间",
+    "avgApiLatency": "平均 API 延迟",
+    "totalReports": "上报总数",
+    "activePaths": "今日活跃路径",
+    "detailMetrics": "详细性能指标",
+    "selectError": "请从左侧选择一个错误事件查看详情"
+  },
+  "chat": {
+    "welcome": "你好，请问有什么可以帮你的吗？",
+    "deleteConfirm": "确认删除这条 AI 回答吗？",
+    "deleteSuccess": "已删除这条 AI 回答",
+    "createFailed": "创建聊天组失败"
+  }
+}

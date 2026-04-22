@@ -75,7 +75,7 @@ export async function POST(req: NextRequest) {
     model: deepSeek("deepseek-chat"), //使用deepseek-chat模型
     messages: convertToModelMessages(messages), //转换成ai厂商需要的格式
     system:
-      "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，是人类的好帮手。", //系统提示词
+      "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，会说多国语言，能根据用户的提问调整对应的回答语言，是人类的好帮手。", //系统提示词
     // 当流式响应返回完成时调用，将生成的文本保存到数据库中
     onFinish: async ({ text }) => {
       if (!chatId || !Number.isFinite(chatId)) return;

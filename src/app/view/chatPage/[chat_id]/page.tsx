@@ -14,6 +14,7 @@ import { message, Popconfirm } from "antd";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import throttle from "lodash/throttle";
+import { useTranslation } from "react-i18next";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = {
@@ -62,6 +63,7 @@ const MessageItem = memo(
     isStreaming: boolean;
     onDelete: (aiId: string) => void;
   }) => {
+    const { t } = useTranslation();
     return (
       <div
         className={`${styles.message} ${
@@ -89,10 +91,10 @@ const MessageItem = memo(
           {message.role === "assistant" && (
             <div className={styles.actions}>
               <Popconfirm
-                title="删除本条回答"
-                description="确认删除这条 AI 回答吗？"
-                okText="删除"
-                cancelText="取消"
+                title={t("chat.deleteConfirm")}
+                description={t("chat.deleteConfirm")}
+                okText={t("common.back")}
+                cancelText={t("common.back")}
                 onConfirm={() => onDelete(message.id)}
               >
                 <DeleteOutlined className={styles.deleteIcon} />
@@ -108,6 +110,7 @@ const MessageItem = memo(
 MessageItem.displayName = "MessageItem";
 
 export default function ChatPageDeatil() {
+  const { t } = useTranslation();
   const params = useParams<{ chat_id: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -199,7 +202,7 @@ export default function ChatPageDeatil() {
                 (item) => item.id !== aiMessageId && item.id !== userMessageId,
               ),
             );
-            message.success("已删除这条 AI 回回答");
+            message.success(t("chat.deleteSuccess"));
           }
         } catch (error) {
           const errorMessage =

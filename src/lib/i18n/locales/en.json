@@ -1,0 +1,28 @@
+{
+  "common": {
+    "newChat": "New Chat",
+    "logout": "Logout",
+    "monitor": "Monitor",
+    "send": "Send",
+    "stop": "Stop",
+    "placeholder": "Enter content, Shift + Enter for new line",
+    "thinking": "Thinking...",
+    "errorDetail": "Error Details",
+    "performanceMonitor": "Performance",
+    "errorMonitor": "Error Logs",
+    "noRecord": "No Records",
+    "back": "Back",
+    "avgLoadTime": "Avg Load Time",
+    "avgApiLatency": "Avg API Latency",
+    "totalReports": "Total Reports",
+    "activePaths": "Active Paths Today",
+    "detailMetrics": "Detailed Metrics",
+    "selectError": "Select an error from the left to view details"
+  },
+  "chat": {
+    "welcome": "Hello, how can I help you today?",
+    "deleteConfirm": "Are you sure you want to delete this AI response?",
+    "deleteSuccess": "AI response deleted",
+    "createFailed": "Failed to create chat group"
+  }
+}

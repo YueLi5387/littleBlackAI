@@ -6,7 +6,7 @@ let events = [];
 export const recordEvents = (event) => {
   events.push(event);
   // 限制长度，防止内存溢出
-  if (events.length > 1000) {
+  if (events.length > 500) {
     events.shift();
   }
 };

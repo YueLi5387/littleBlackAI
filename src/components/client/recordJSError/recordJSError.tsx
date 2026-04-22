@@ -2,8 +2,17 @@
 import { useEffect } from "react";
 import { record } from "@rrweb/record";
 import { recordEvents, reportEvents } from "@/lib/utils/recordEvents";
+import { reportPerformance } from "@/lib/utils/performance";
+import { usePathname } from "next/navigation";
 
 export default function Monitoring() {
+  const pathname = usePathname(); //获取url路径
+
+  useEffect(() => {
+    // 每次路径变化时记录性能
+    reportPerformance();
+  }, [pathname]);
+
   useEffect(() => {
     // 开始录制
     const stopFn = record({

@@ -42,3 +42,12 @@ export const errorEventsTable = pgTable("error_events", {
   events: jsonb("events").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// 性能监控存储表
+export const performanceEventsTable = pgTable("performance_events", {
+  id: serial("id").primaryKey(),
+  userId: varchar("user_id", { length: 128 }),
+  path: varchar("path", { length: 255 }).notNull(),
+  metrics: jsonb("metrics").notNull(), // { loadTime, ttfb, fcp, 请求接口耗时..... }
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});

@@ -5,7 +5,7 @@ import {
   MenuUnfoldOutlined,
   PlusCircleOutlined,
 } from "@ant-design/icons";
-import { Button, Layout, Menu, theme } from "antd";
+import { Button, Layout, Menu, theme, Select } from "antd";
 import styles from "./view.module.scss";
 import http from "@/lib/utils/http";
 import { useRouter, useParams } from "next/navigation";
@@ -13,8 +13,10 @@ import { ROUTES } from "@/lib/constants/routes";
 import { createClient } from "@/lib/supabase/client";
 import dayjs from "dayjs";
 import throttle from "lodash/throttle";
+import { useTranslation } from "react-i18next";
 
 const { Header, Sider, Content } = Layout;
+const { Option } = Select;
 
 type ChatItem = {
   id: string | number;
@@ -37,6 +39,7 @@ export default function ChatLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { t, i18n } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
   const params = useParams<{ chat_id: string }>();
@@ -49,7 +52,7 @@ export default function ChatLayout({
 
   // 获取当前对话标题
   const currentChat = chat.find((item) => String(item.id) === params.chat_id);
-  const headerTitle = currentChat?.title || "新对话";
+  const headerTitle = currentChat?.title || t("common.newChat");
 
   // 进入页面拉取聊天列表和管理员状态
   useEffect(() => {
@@ -145,7 +148,7 @@ export default function ChatLayout({
             block
             style={{ marginBottom: "16px" }}
           >
-            {!collapsed && "新建对话"}
+            {!collapsed && t("common.newChat")}
           </Button>
         </div>
         <Menu
@@ -214,14 +217,24 @@ export default function ChatLayout({
             }}
           />
           <h1 className={styles.title}>{headerTitle}</h1>
-          <div style={{ display: "flex", gap: "10px" }}>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <Select
+              value={i18n.language.split("-")[0]} // 处理 zh-CN 这种情况
+              style={{ width: 100 }}
+              onChange={(value) => i18n.changeLanguage(value)}
+              size="small"
+            >
+              <Option value="zh">中文</Option>
+              <Option value="en">English</Option>
+              <Option value="jp">日本語</Option>
+            </Select>
             {isAdmin && (
               <Button type="primary" ghost onClick={handleGoSupervise}>
-                监控
+                {t("common.monitor")}
               </Button>
             )}
             <Button type="primary" ghost onClick={handleLogout}>
-              退出登录
+              {t("common.logout")}
             </Button>
           </div>
         </Header>

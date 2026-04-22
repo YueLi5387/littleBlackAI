@@ -4,11 +4,13 @@ import styles from "./chat.module.scss";
 import { ChatInput } from "@/components/chatInput/chatInput";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
+import { useTranslation } from "react-i18next";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = { id: string; role: string; parts: ChatPart[] };
 
 export default function ChatPage() {
+  const { t } = useTranslation();
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({ api: "/api/message" }),
   });
@@ -16,7 +18,7 @@ export default function ChatPage() {
   return (
     <div className={styles.chatPage}>
       <div className={styles.content}>
-        <p>你好，请问有什么可以帮你的吗？</p>
+        <p>{t("chat.welcome")}</p>
       </div>
 
       {(messages as ChatMessage[]).map((message) => (

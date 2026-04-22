@@ -6,6 +6,7 @@ import { Button, message } from "antd";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import http from "@/lib/utils/http";
+import { useTranslation } from "react-i18next";
 
 type ChatInputMode = "chatHome" | "chatDetail";
 
@@ -22,6 +23,7 @@ export function ChatInput({
   isResponding = false,
   onStop,
 }: ChatInputProps) {
+  const { t } = useTranslation();
   const [input, setInput] = useState("");
   const [isCreatingChat, setIsCreatingChat] = useState(false);
   const router = useRouter();
@@ -48,17 +50,15 @@ export function ChatInput({
       };
 
       if (!res.data?.chatId) {
-        throw new Error(res.message || "创建聊天组失败");
+        throw new Error(res.message || t("chat.createFailed"));
       }
 
       const query = new URLSearchParams({ question }).toString();
       router.push(`${ROUTES.chatDetail(res.data.chatId)}?${query}`);
       setInput("");
     } catch (error) {
-      console.log("失败了");
-
       const errorMessage =
-        error instanceof Error ? error.message : "创建聊天组失败";
+        error instanceof Error ? error.message : t("chat.createFailed");
       message.error(errorMessage);
     } finally {
       setIsCreatingChat(false);
@@ -85,7 +85,7 @@ export function ChatInput({
       <TextArea
         value={input}
         onChange={(e) => setInput(e.target.value)}
-        placeholder="请输入内容"
+        placeholder={t("common.placeholder")}
         className={styles.textarea}
         size="large"
         autoSize={{ minRows: 3, maxRows: 4 }}
@@ -104,7 +104,9 @@ export function ChatInput({
           onClick={() => void toChatDetailOrSubmit()}
           loading={isCreatingChat}
         >
-          {isResponding && type === "chatDetail" ? "中断" : "发送"}
+          {isResponding && type === "chatDetail"
+            ? t("common.stop")
+            : t("common.send")}
         </Button>
       </div>
     </div>
