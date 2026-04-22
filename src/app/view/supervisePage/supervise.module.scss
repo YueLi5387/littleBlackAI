@@ -23,47 +23,61 @@
       }
     }
 
-    .eventList {
-      height: calc(100vh - 65px);
-      overflow-y: auto;
+    .menuArea {
       padding: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
 
-      .perfItem {
-        padding: 12px;
-        margin-bottom: 8px;
+      .menuItem {
+        padding: 12px 16px;
         border-radius: 8px;
-        background: #fff;
-        border: 1px solid #f0f0f0;
+        cursor: pointer;
         transition: all 0.3s;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: #595959;
+        font-weight: 500;
 
         &:hover {
-          border-color: #91d5ff;
-          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+          background: #f5f7fa;
+          color: #1890ff;
         }
 
-        .perfHeader {
+        &.active {
+          background: #e6f7ff;
+          color: #1890ff;
+        }
+
+        .menuItemLeft {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          margin-bottom: 8px;
-
-          .perfTime {
-            font-size: 11px;
-            color: #8c8c8c;
-          }
+          gap: 8px;
         }
 
-        .perfMetrics {
-          display: flex;
-          gap: 12px;
-          font-size: 12px;
-          color: #595959;
+        span {
+          font-size: 14px;
+        }
+      }
+    }
 
-          .metric {
-            background: #fafafa;
-            padding: 2px 6px;
-            border-radius: 4px;
-          }
+    .eventList {
+      height: calc(100vh - 200px);
+      overflow-y: auto;
+      padding: 0 8px 8px 24px; // 增加左缩进，体现层级关系
+      border-left: 1px solid #f0f0f0;
+      margin-left: 24px;
+      animation: slideDown 0.3s ease-out;
+
+      @keyframes slideDown {
+        from {
+          opacity: 0;
+          transform: translateY(-10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
         }
       }
 

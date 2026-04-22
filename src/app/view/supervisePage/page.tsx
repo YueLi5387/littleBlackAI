@@ -21,6 +21,8 @@ import {
   MenuUnfoldOutlined,
   BugOutlined,
   DashboardOutlined,
+  RightOutlined,
+  DownOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import styles from "./supervise.module.scss";
@@ -66,6 +68,7 @@ export default function SupervisePage() {
     PerformanceEvent[]
   >([]);
   const [selectedEvent, setSelectedEvent] = useState<ErrorEvent | null>(null);
+  const [isErrorListExpanded, setIsErrorListExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const replayerContainer = useRef<HTMLDivElement>(null);
   const playerInstance = useRef<any>(null);
@@ -214,33 +217,7 @@ export default function SupervisePage() {
         className={styles.left}
       >
         <div className={styles.siderHeader}>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Tabs
-              activeKey={mode}
-              onChange={(key) => setMode(key as any)}
-              size="small"
-              items={[
-                {
-                  key: "error",
-                  label: (
-                    <span>
-                      <BugOutlined />
-                      {t("common.errorMonitor")}
-                    </span>
-                  ),
-                },
-                {
-                  key: "performance",
-                  label: (
-                    <span>
-                      <DashboardOutlined />
-                      {t("common.performanceMonitor")}
-                    </span>
-                  ),
-                },
-              ]}
-            />
-          </div>
+          <h2 style={{ margin: 0, fontSize: 16 }}>{t("common.monitor")}</h2>
           <Button
             type="text"
             icon={<ReloadOutlined />}
@@ -248,9 +225,43 @@ export default function SupervisePage() {
             loading={loading}
           />
         </div>
-        <div className={styles.eventList}>
-          {mode === "error" ? (
-            errorEvents.map((item) => {
+
+        <div className={styles.menuArea}>
+          <div
+            className={`${styles.menuItem} ${mode === "performance" ? styles.active : ""}`}
+            onClick={() => {
+              setMode("performance");
+              setSelectedEvent(null);
+            }}
+          >
+            <div className={styles.menuItemLeft}>
+              <DashboardOutlined />
+              <span>{t("common.performanceMonitor")}</span>
+            </div>
+          </div>
+
+          <div
+            className={`${styles.menuItem} ${mode === "error" ? styles.active : ""}`}
+            onClick={() => {
+              setMode("error");
+              setIsErrorListExpanded(!isErrorListExpanded);
+            }}
+          >
+            <div className={styles.menuItemLeft}>
+              <BugOutlined />
+              <span>{t("common.errorMonitor")}</span>
+            </div>
+            {isErrorListExpanded ? (
+              <DownOutlined style={{ fontSize: 10 }} />
+            ) : (
+              <RightOutlined style={{ fontSize: 10 }} />
+            )}
+          </div>
+        </div>
+
+        {isErrorListExpanded && (
+          <div className={styles.eventList}>
+            {errorEvents.map((item) => {
               const itemError =
                 typeof item.error === "string"
                   ? JSON.parse(item.error)
@@ -258,8 +269,11 @@ export default function SupervisePage() {
               return (
                 <div
                   key={item.id}
-                  className={`${styles.eventItem} ${selectedEvent?.id === item.id ? styles.active : ""}`}
-                  onClick={() => setSelectedEvent(item)}
+                  className={`${styles.eventItem} ${mode === "error" && selectedEvent?.id === item.id ? styles.active : ""}`}
+                  onClick={() => {
+                    setMode("error");
+                    setSelectedEvent(item);
+                  }}
                 >
                   <span className={styles.errorName}>
                     {itemError?.message || t("common.noRecord")}
@@ -269,44 +283,16 @@ export default function SupervisePage() {
                   </span>
                 </div>
               );
-            })
-          ) : (
-            <List
-              dataSource={performanceEvents}
-              renderItem={(item) => (
-                <div className={styles.perfItem}>
-                  <div className={styles.perfHeader}>
-                    <Tag color="blue">{item.path}</Tag>
-                    <span className={styles.perfTime}>
-                      {dayjs(item.createdAt).format("HH:mm:ss")}
-                    </span>
-                  </div>
-                  <div className={styles.perfMetrics}>
-                    {item.metrics.loadTime && (
-                      <span className={styles.metric}>
-                        Load: {item.metrics.loadTime.toFixed(0)}ms
-                      </span>
-                    )}
-                    {item.metrics.apiLatency && (
-                      <span className={styles.metric}>
-                        API: {item.metrics.apiLatency.toFixed(0)}ms
-                      </span>
-                    )}
-                  </div>
-                </div>
-              )}
-            />
-          )}
-          {((mode === "error" && errorEvents.length === 0) ||
-            (mode === "performance" && performanceEvents.length === 0)) &&
-            !loading && (
+            })}
+            {errorEvents.length === 0 && !loading && (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
                 description={t("common.noRecord")}
-                style={{ marginTop: 40 }}
+                style={{ marginTop: 20 }}
               />
             )}
-        </div>
+          </div>
+        )}
       </Sider>
 
       <Layout className={styles.right}>
@@ -390,7 +376,7 @@ export default function SupervisePage() {
           ) : (
             <div className={styles.perfDashboard}>
               <Row gutter={[16, 16]}>
-                <Col span={6}>
+                <Col span={8}>
                   <Card size="small">
                     <Statistic
                       title={t("common.avgLoadTime")}
@@ -407,24 +393,7 @@ export default function SupervisePage() {
                     />
                   </Card>
                 </Col>
-                <Col span={6}>
-                  <Card size="small">
-                    <Statistic
-                      title={t("common.avgApiLatency")}
-                      value={
-                        performanceEvents.reduce(
-                          (acc, cur) => acc + (cur.metrics.apiLatency || 0),
-                          0,
-                        ) /
-                        (performanceEvents.filter((e) => e.metrics.apiLatency)
-                          .length || 1)
-                      }
-                      suffix="ms"
-                      precision={0}
-                    />
-                  </Card>
-                </Col>
-                <Col span={6}>
+                <Col span={8}>
                   <Card size="small">
                     <Statistic
                       title={t("common.totalReports")}
@@ -432,7 +401,7 @@ export default function SupervisePage() {
                     />
                   </Card>
                 </Col>
-                <Col span={6}>
+                <Col span={8}>
                   <Card size="small">
                     <Statistic
                       title={t("common.activePaths")}
@@ -469,19 +438,6 @@ export default function SupervisePage() {
                               </Col>
                               <Col>
                                 TTFB: {item.metrics.ttfb?.toFixed(0) || "-"}ms
-                              </Col>
-                              <Col>
-                                API:{" "}
-                                <Tag
-                                  color={
-                                    item.metrics.apiLatency &&
-                                    item.metrics.apiLatency > 500
-                                      ? "orange"
-                                      : "blue"
-                                  }
-                                >
-                                  {item.metrics.apiLatency?.toFixed(0) || "-"}ms
-                                </Tag>
                               </Col>
                               <Col>
                                 Time:{" "}

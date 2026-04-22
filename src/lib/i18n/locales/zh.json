@@ -13,7 +13,6 @@
     "noRecord": "暂无记录",
     "back": "返回",
     "avgLoadTime": "平均加载时间",
-    "avgApiLatency": "平均 API 延迟",
     "totalReports": "上报总数",
     "activePaths": "今日活跃路径",
     "detailMetrics": "详细性能指标",

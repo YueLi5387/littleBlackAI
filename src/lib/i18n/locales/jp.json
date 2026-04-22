@@ -12,9 +12,8 @@
     "errorMonitor": "エラーログ",
     "noRecord": "記録なし",
     "back": "戻る",
-    "avgLoadTime": "平均ロード時間",
-    "avgApiLatency": "平均 API 遅延",
-    "totalReports": "レポート総数",
+    "avgLoadTime": "平均ロード时间",
+    "totalReports": "レポート总数",
     "activePaths": "本日のアクティブパス",
     "detailMetrics": "詳細パフォーマンス指標",
     "selectError": "左側のエラーを選択して詳細を表示してください"

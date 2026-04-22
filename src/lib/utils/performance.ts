@@ -49,15 +49,3 @@ export const reportPerformance = async () => {
     });
   }
 };
-
-// 上报接口耗时（传入接口地址和耗时）
-export const trackApiLatency = async (path: string, duration: number) => {
-  try {
-    await http.post("/api/performanceEvents", {
-      path,
-      metrics: { apiLatency: duration },
-    });
-  } catch (e) {
-    console.warn("API Latency report failed", e);
-  }
-};

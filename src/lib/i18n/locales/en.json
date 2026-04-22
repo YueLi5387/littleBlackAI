@@ -13,7 +13,6 @@
     "noRecord": "No Records",
     "back": "Back",
     "avgLoadTime": "Avg Load Time",
-    "avgApiLatency": "Avg API Latency",
     "totalReports": "Total Reports",
     "activePaths": "Active Paths Today",
     "detailMetrics": "Detailed Metrics",
