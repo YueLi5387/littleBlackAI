@@ -1,6 +1,9 @@
+"use client";
 import { Spin } from "antd";
+import { useTranslation } from "react-i18next";
 
 export default function Loading() {
+  const { t } = useTranslation();
   return (
     <div
       style={{
@@ -19,7 +22,7 @@ export default function Loading() {
     >
       <Spin size="large" />
       <div style={{ marginTop: 16, color: "#1890ff", fontWeight: 500 }}>
-        正在加载页面，请稍候...
+        {t("common.loading")}
       </div>
     </div>
   );

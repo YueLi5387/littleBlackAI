@@ -1,5 +1,12 @@
 "use client";
-import { memo, useCallback, useContext, useEffect, useRef } from "react";
+import {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import styles from "./chatDetail.module.scss";
 
 import { ChatInput } from "@/components/chatInput/chatInput";
@@ -206,34 +213,43 @@ export default function ChatPageDeatil() {
           }
         } catch (error) {
           const errorMessage =
-            error instanceof Error ? error.message : "删除回答失败，请稍后重试";
+            error instanceof Error ? error.message : t("chat.deleteFailed");
           message.error(errorMessage);
         }
       },
       1000,
       { trailing: false },
     ),
-    [chatId, setMessages],
+    [chatId, setMessages, t],
   );
+
+  const handleMessageDelete = useCallback(
+    (aiId: string, index: number) => {
+      const userMsgId = messages[index - 1]?.id;
+      if (userMsgId) void handleDeleteAssistantReply(aiId, userMsgId);
+    },
+    [messages, handleDeleteAssistantReply],
+  );
+
+  const messageItems = useMemo(() => {
+    return (messages as ChatMessage[]).map((message, index) => (
+      <MessageItem
+        key={message.id}
+        message={message}
+        isStreaming={
+          status === "streaming" &&
+          index === messages.length - 1 &&
+          message.role === "assistant"
+        }
+        onDelete={(aiId) => handleMessageDelete(aiId, index)}
+      />
+    ));
+  }, [messages, status, handleMessageDelete]);
 
   return (
     <div className={styles.chatDetailPage}>
       <div className={styles.content}>
-        {(messages as ChatMessage[]).map((message, index) => (
-          <MessageItem
-            key={message.id}
-            message={message}
-            isStreaming={
-              status === "streaming" &&
-              index === messages.length - 1 &&
-              message.role === "assistant"
-            }
-            onDelete={(aiId) => {
-              const userMsgId = messages[index - 1]?.id;
-              if (userMsgId) void handleDeleteAssistantReply(aiId, userMsgId);
-            }}
-          />
-        ))}
+        {messageItems}
         {/* 让最新消息一直显示在底部 */}
         <div ref={latestMsgRef}></div>
       </div>

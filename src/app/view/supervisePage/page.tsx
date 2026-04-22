@@ -83,7 +83,7 @@ export default function SupervisePage() {
           data: { isAdmin: boolean };
         };
         if (adminRes.code !== 0 || !adminRes.data.isAdmin) {
-          message.error("您没有权限访问此页面");
+          message.error(t("common.noPermission"));
           router.replace(ROUTES.chatHome);
           return;
         }
@@ -131,11 +131,11 @@ export default function SupervisePage() {
       if (res.code === 0) {
         setPerformanceEvents(res.data);
       } else {
-        message.error("获取性能数据失败");
+        message.error(t("common.getPerfFailed"));
       }
     } catch (error) {
       console.error("获取性能列表失败:", error);
-      message.error("连接性能接口失败，请检查网络或数据库");
+      message.error(t("common.perfConnectFailed"));
     }
   };
 
@@ -369,7 +369,7 @@ export default function SupervisePage() {
               <div className={styles.empty}>
                 <Empty
                   image={Empty.PRESENTED_IMAGE_SIMPLE}
-                  description={t("common.selectError")}
+                  description={t("common.selectErrorHint")}
                 />
               </div>
             )

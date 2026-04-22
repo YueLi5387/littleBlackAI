@@ -8,9 +8,11 @@ import { notification } from "antd";
 import type { FormInstance } from "antd";
 import { ROUTES } from "@/lib/constants/routes";
 import { useUserStore } from "@/store/userStore";
+import { useTranslation } from "react-i18next";
 
 function LoginContent() {
-  const [head, setHead] = useState("登录");
+  const { t } = useTranslation();
+  const [head, setHead] = useState(t("common.login"));
   const [isLoading, setIsLoading] = useState(false); //加载状态
 
   // 路由跳转
@@ -22,7 +24,7 @@ function LoginContent() {
   const changeLogin = (value: string) => {
     formRef.current?.resetFields(); //清空表单
     // 如果是切换到登录，且仓库有存储的用户信息，则自动填充
-    if (value === "登录" && user) {
+    if (value === t("common.login") && user) {
       setTimeout(() => {
         formRef.current?.setFieldsValue({
           email: user.username,
@@ -39,30 +41,30 @@ function LoginContent() {
   useEffect(() => {
     if (searchParams.get("auth_error") === "1") {
       notificationAPI.warning({
-        message: "邮箱验证失败",
-        description: "验证链接已过期或无效，请重新注册或再次获取验证邮件。",
+        message: t("common.emailVerifyFailed"),
+        description: t("common.emailVerifyDesc"),
       });
     }
     // 初始进入页面，如果仓库有用户信息，自动填充
-    if (head === "登录" && user) {
+    if (head === t("common.login") && user) {
       formRef.current?.setFieldsValue({
         email: user.username,
         password: user.password,
         remember: true,
       });
     }
-  }, [notificationAPI, searchParams, user, head]);
+  }, [notificationAPI, searchParams, user, head, t]);
 
   // 登录
   const supabase = createClient();
   const getLoginErrorTip = (error: unknown) => {
-    if (!(error instanceof Error)) return "登录失败，请稍后重试~";
+    if (!(error instanceof Error)) return t("common.loginFailed");
     const normalized = error.message.toLowerCase();
     if (normalized.includes("email not confirmed")) {
-      return "邮箱尚未验证，请先完成邮件验证后再登录。";
+      return t("common.emailNotConfirmed");
     }
     if (normalized.includes("invalid login credentials")) {
-      return "账号或密码错误，请检查后重试。";
+      return t("common.invalidCredentials");
     }
     return error.message;
   };
@@ -89,7 +91,7 @@ function LoginContent() {
 
       messageApi.open({
         type: "success",
-        content: "登录成功",
+        content: t("common.loginSuccess"),
       });
       router.push(ROUTES.chatHome);
     } catch (error: unknown) {
@@ -122,15 +124,15 @@ function LoginContent() {
       if (error) throw error;
 
       notificationAPI["warning"]({
-        title: "注册成功",
-        description: "请查看邮箱信息点击验证链接确认您的身份，验证后才可登录。",
+        title: t("common.registerSuccess"),
+        description: t("common.registerCheckEmail"),
       });
-      changeLogin("登录");
+      changeLogin(t("common.login"));
     } catch (error: unknown) {
       messageApi.open({
         type: "error",
         content:
-          error instanceof Error ? error.message : "注册失败，请稍后重试~",
+          error instanceof Error ? error.message : t("common.registerFailed"),
       });
     } finally {
       setIsLoading(false);
@@ -144,13 +146,13 @@ function LoginContent() {
 
       <Card className={styles.login}>
         <Segmented
-          options={["登录", "注册"]}
+          options={[t("common.login"), t("common.register")]}
           value={head}
           onChange={changeLogin}
           className={styles.header}
         />
         <div className={styles.content}>
-          {head === "登录" ? (
+          {head === t("common.login") ? (
             <Form
               name="basic"
               labelCol={{ span: 8 }}
@@ -162,34 +164,34 @@ function LoginContent() {
               ref={formRef}
             >
               <Form.Item
-                label="邮箱"
+                label={t("common.email")}
                 name="email"
                 rules={[
-                  { required: true, message: "请输入邮箱！" },
-                  { type: "email", message: "请输入正确的邮箱格式！" },
+                  { required: true, message: t("common.placeholder") },
+                  { type: "email", message: t("common.email") },
                 ]}
               >
                 <Input />
               </Form.Item>
 
               <Form.Item
-                label="密码"
+                label={t("common.password")}
                 name="password"
                 rules={[
-                  { required: true, message: "请输入密码！" },
-                  { min: 6, message: "密码至少 6 位！" },
+                  { required: true, message: t("common.placeholder") },
+                  { min: 6, message: t("common.password") },
                 ]}
               >
                 <Input.Password />
               </Form.Item>
 
               <Form.Item name="remember" valuePropName="checked" label={null}>
-                <Checkbox>记住我</Checkbox>
+                <Checkbox>{t("common.rememberMe")}</Checkbox>
               </Form.Item>
 
               <Form.Item label={null}>
                 <Button type="primary" htmlType="submit" disabled={isLoading}>
-                  {isLoading ? "登录中..." : "登录"}
+                  {isLoading ? t("common.loggingIn") : t("common.login")}
                 </Button>
               </Form.Item>
             </Form>
@@ -205,37 +207,37 @@ function LoginContent() {
               ref={formRef}
             >
               <Form.Item
-                label="邮箱"
+                label={t("common.email")}
                 name="email"
                 rules={[
-                  { required: true, message: "请输入邮箱！" },
-                  { type: "email", message: "请输入正确的邮箱格式！" },
+                  { required: true, message: t("common.placeholder") },
+                  { type: "email", message: t("common.email") },
                 ]}
               >
                 <Input />
               </Form.Item>
 
               <Form.Item
-                label="密码"
+                label={t("common.password")}
                 name="password"
                 rules={[
-                  { required: true, message: "请输入密码！" },
-                  { min: 6, message: "密码至少 6 位！" },
+                  { required: true, message: t("common.placeholder") },
+                  { min: 6, message: t("common.password") },
                 ]}
               >
                 <Input.Password />
               </Form.Item>
               <Form.Item
-                label="确认密码"
+                label={t("common.rePassword")}
                 name="rePassword"
                 rules={[
-                  { required: true, message: "请再次输入密码！" },
+                  { required: true, message: t("common.placeholder") },
                   {
                     validator: (_, value) => {
                       if (
                         value !== formRef.current?.getFieldValue("password")
                       ) {
-                        return Promise.reject("两次密码不一致！");
+                        return Promise.reject(t("common.passwordMismatch"));
                       }
                       return Promise.resolve();
                     },
@@ -247,7 +249,7 @@ function LoginContent() {
 
               <Form.Item label={null}>
                 <Button type="primary" htmlType="submit" disabled={isLoading}>
-                  {isLoading ? "注册中..." : "注册"}
+                  {isLoading ? t("common.registering") : t("common.register")}
                 </Button>
               </Form.Item>
             </Form>

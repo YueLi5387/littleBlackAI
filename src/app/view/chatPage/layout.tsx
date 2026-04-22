@@ -14,6 +14,7 @@ import { createClient } from "@/lib/supabase/client";
 import dayjs from "dayjs";
 import throttle from "lodash/throttle";
 import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
 const { Header, Sider, Content } = Layout;
 const { Option } = Select;
@@ -132,6 +133,44 @@ export default function ChatLayout({
   //   http.get("/api/sss");
   // };
 
+  const menuItems = useMemo(() => {
+    return chat.map((item) => ({
+      key: String(item.id),
+      label: (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
+            lineHeight: "1.2",
+            padding: "4px 0",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "16px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {item.title}
+          </span>
+          {!collapsed && (
+            <span
+              style={{
+                fontSize: "10px",
+                color: "rgba(255, 255, 255, 0.45)",
+              }}
+            >
+              {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+            </span>
+          )}
+        </div>
+      ),
+    }));
+  }, [chat, collapsed]);
+
   return (
     <Layout className={styles.layout}>
       <Sider
@@ -156,41 +195,7 @@ export default function ChatLayout({
           mode="inline"
           selectedKeys={params.chat_id ? [params.chat_id] : []}
           onClick={handleMenuClick}
-          items={chat.map((item) => ({
-            key: String(item.id),
-            label: (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "5px",
-                  lineHeight: "1.2",
-                  padding: "4px 0",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "16px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.title}
-                </span>
-                {!collapsed && (
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      color: "rgba(255, 255, 255, 0.45)",
-                    }}
-                  >
-                    {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
-                  </span>
-                )}
-              </div>
-            ),
-          }))}
+          items={menuItems}
         />
       </Sider>
       <Layout className={styles.right}>

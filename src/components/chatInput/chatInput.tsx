@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import http from "@/lib/utils/http";
 import { useTranslation } from "react-i18next";
+import { memo } from "react";
 
 type ChatInputMode = "chatHome" | "chatDetail";
 
@@ -17,7 +18,7 @@ type ChatInputProps = {
   onStop?: () => void;
 };
 
-export function ChatInput({
+export const ChatInput = memo(function ChatInput({
   sendMessage,
   type,
   isResponding = false,
@@ -111,4 +112,4 @@ export function ChatInput({
       </div>
     </div>
   );
-}
+});
