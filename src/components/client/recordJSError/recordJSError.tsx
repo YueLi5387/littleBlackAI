@@ -1,25 +1,35 @@
-"use client"; // 必须是客户端组件才能使用 window 和 useEffect
+"use client";
 import { useEffect } from "react";
 import { record } from "@rrweb/record";
 import { recordEvents, reportEvents } from "@/lib/utils/recordEvents";
 
 export default function Monitoring() {
   useEffect(() => {
+    // 开始录制
     const stopFn = record({
       emit(event) {
         recordEvents(event);
       },
-    });
-    window.addEventListener("error", (event) => {
-      reportEvents(event);
+      // 每一分钟重新拍摄一次快照，保证回放链路完整
+      checkoutEveryNms: 60 * 1000,
     });
 
-    // 当这个组件所在的 layout 真的被销毁时, 执行清理
+    const handleError = (event: ErrorEvent) => {
+      reportEvents(event);
+    };
+
+    const handleRejection = (event: PromiseRejectionEvent) => {
+      reportEvents(event.reason);
+    };
+
+    window.addEventListener("error", handleError);
+    // 监听未捕获的 Promise 报错
+    window.addEventListener("unhandledrejection", handleRejection);
+
     return () => {
       if (stopFn) stopFn();
-      window.removeEventListener("error", (event) => {
-        reportEvents(event);
-      });
+      window.removeEventListener("error", handleError);
+      window.removeEventListener("unhandledrejection", handleRejection);
     };
   }, []);
 

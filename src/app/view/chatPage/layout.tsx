@@ -123,10 +123,11 @@ export default function ChatLayout({
     ),
     [supabase.auth, router],
   );
-  const test = () => {
-    console.log("dsds", oooo);
-    http.get("/api/sss");
-  };
+  // 测试报错
+  // const test = () => {
+  //   console.log("dsds", oooo);
+  //   http.get("/api/sss");
+  // };
 
   return (
     <Layout className={styles.layout}>
@@ -194,9 +195,12 @@ export default function ChatLayout({
           style={{ padding: 0, background: colorBgContainer }}
           className={styles.header}
         >
-          {/* --------- */}
-
-          <button onClick={() => test()}>dihdiwhdiwh</button>
+          {/* ------测试报错--- */}
+          {/* 
+          <form>
+            <button onClick={() => test()}>dihdiwhdiwh</button>
+            <input type="text" />
+          </form> */}
           {/* --------- */}
 
           <Button

@@ -96,6 +96,9 @@ importers:
         specifier: 1.0.0-alpha.4
         version: 1.0.0-alpha.4
     devDependencies:
+      '@rrweb/types':
+        specifier: 2.0.0-alpha.20
+        version: 2.0.0-alpha.20
       '@tailwindcss/postcss':
         specifier: ^4
         version: 4.1.18

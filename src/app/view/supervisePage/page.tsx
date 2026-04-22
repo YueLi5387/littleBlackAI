@@ -1,12 +1,11 @@
 "use client";
 import React, { useEffect, useRef, useState } from "react";
-import { Layout, Button, message, Empty, Spin, Tooltip } from "antd";
+import { Layout, Button, message, Empty, Spin } from "antd";
 import {
   ArrowLeftOutlined,
   ReloadOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
-  PlayCircleOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import styles from "./supervise.module.scss";
@@ -33,7 +32,7 @@ export default function SupervisePage() {
   const [selectedEvent, setSelectedEvent] = useState<ErrorEvent | null>(null);
   const [collapsed, setCollapsed] = useState(false);
   const replayerContainer = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<any>(null);
+  const playerInstance = useRef<any>(null);
 
   // 检查权限并获取数据
   useEffect(() => {
@@ -44,13 +43,11 @@ export default function SupervisePage() {
           code: number;
           data: { isAdmin: boolean };
         };
-
         if (adminRes.code !== 0 || !adminRes.data.isAdmin) {
           message.error("您没有权限访问此页面");
           router.replace(ROUTES.chatHome);
           return;
         }
-
         setIsAdmin(true);
 
         //获取错误列表
@@ -62,42 +59,6 @@ export default function SupervisePage() {
     };
     init();
   }, [router]);
-
-  // 当选择变化时，重新渲染播放器
-  useEffect(() => {
-    if (selectedEvent && replayerContainer.current) {
-      // 清空容器
-      replayerContainer.current.innerHTML = "";
-
-      const events =
-        typeof selectedEvent.events === "string"
-          ? JSON.parse(selectedEvent.events)
-          : selectedEvent.events;
-
-      if (events && events.length > 2) {
-        playerRef.current = new rrwebPlayer({
-          target: replayerContainer.current,
-          props: {
-            events,
-            width: replayerContainer.current.offsetWidth || 800,
-            height: 600,
-            autoPlay: false,
-          },
-        });
-      }
-    }
-
-    return () => {
-      if (playerRef.current) {
-        playerRef.current = null;
-      }
-    };
-  }, [selectedEvent]);
-
-  const selectEvent = (event: ErrorEvent) => {
-    setSelectedEvent(event);
-  };
-
   // 拉取所有错误日志
   const fetchErrorEvents = async () => {
     setLoading(true);
@@ -117,9 +78,51 @@ export default function SupervisePage() {
     }
   };
 
-  const handleBack = () => {
-    router.back();
-  };
+  // 当选择变化时，重新渲染播放器
+  useEffect(() => {
+    if (selectedEvent && replayerContainer.current) {
+      // 清空容器
+      replayerContainer.current.innerHTML = "";
+
+      // 2. 解析事件数据
+      const events =
+        typeof selectedEvent.events === "string"
+          ? JSON.parse(selectedEvent.events)
+          : selectedEvent.events;
+
+      // 3. 校验数据完整性（至少要有 Meta(4) 或 FullSnapshot(2) 之一）
+      const hasInitEvent = events.some(
+        (e: any) => e.type === 2 || e.type === 4,
+      );
+
+      if (events && events.length > 2 && hasInitEvent) {
+        try {
+          playerInstance.current = new rrwebPlayer({
+            target: replayerContainer.current,
+            props: {
+              events,
+              width: replayerContainer.current.offsetWidth || 800,
+              height: 500,
+              autoPlay: false,
+            },
+          });
+        } catch (e) {
+          console.error("rrweb-player 初始化失败:", e);
+        }
+      } else {
+        replayerContainer.current.innerHTML =
+          '<div style="color: #999; text-align: center; padding: 20px;">回放数据不完整（缺少页面初始化信息）</div>';
+      }
+    }
+
+    return () => {
+      if (playerInstance.current) {
+        playerInstance.current = null;
+      }
+    };
+  }, [selectedEvent]);
+
+  const handleBack = () => router.back();
 
   if (!isAdmin) {
     return (
@@ -145,35 +148,23 @@ export default function SupervisePage() {
   return (
     <Layout className={styles.layout}>
       <Sider
-        width={300}
+        width={320}
         collapsedWidth={0}
         collapsible
         collapsed={collapsed}
         trigger={null}
         className={styles.left}
       >
-        <div
-          style={{
-            padding: "16px",
-            color: "#fff",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            whiteSpace: "nowrap",
-          }}
-        >
-          <span style={{ fontSize: "16px", fontWeight: "bold" }}>
-            错误监控列表
-          </span>
+        <div className={styles.siderHeader}>
+          <h2>错误监控列表</h2>
           <Button
             type="text"
-            icon={<ReloadOutlined style={{ color: "#fff" }} />}
+            icon={<ReloadOutlined />}
             onClick={fetchErrorEvents}
             loading={loading}
           />
         </div>
-        <div className={styles.listContainer}>
+        <div className={styles.eventList}>
           {errorEvents.map((item) => {
             const itemError =
               typeof item.error === "string"
@@ -182,89 +173,78 @@ export default function SupervisePage() {
             return (
               <div
                 key={item.id}
-                className={`${styles.errorItem} ${selectedEvent?.id === item.id ? styles.active : ""}`}
-                onClick={() => selectEvent(item)}
+                className={`${styles.eventItem} ${selectedEvent?.id === item.id ? styles.active : ""}`}
+                onClick={() => setSelectedEvent(item)}
               >
-                <div className={styles.errorTitle}>
+                <span className={styles.errorName}>
                   {itemError?.message || "未知错误"}
-                </div>
-                <div className={styles.errorTime}>
-                  {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm:ss")}
-                </div>
+                </span>
+                <span className={styles.errorTime}>
+                  {dayjs(item.createdAt).format("MM-DD HH:mm:ss")}
+                </span>
               </div>
             );
           })}
           {errorEvents.length === 0 && !loading && (
-            <div
-              style={{
-                padding: "20px",
-                textAlign: "center",
-                color: "rgba(255,255,255,0.45)",
-              }}
-            >
-              暂无错误记录
-            </div>
+            <Empty
+              image={Empty.PRESENTED_IMAGE_SIMPLE}
+              description="暂无错误记录"
+              style={{ marginTop: 40 }}
+            />
           )}
         </div>
       </Sider>
 
       <Layout className={styles.right}>
         <Header className={styles.header}>
-          <div style={{ display: "flex", alignItems: "center" }}>
+          <div className={styles.headerLeft}>
             <Button
               type="text"
               icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
               onClick={() => setCollapsed(!collapsed)}
-              style={{ marginRight: "8px" }}
             />
             <Button
               type="text"
               icon={<ArrowLeftOutlined />}
               onClick={handleBack}
-              style={{ marginRight: "16px" }}
             />
             <h1 className={styles.title}>错误详情</h1>
           </div>
-          <div style={{ color: "#999" }}>
-            {selectedEvent ? `ID: ${selectedEvent.id}` : ""}
+          <div style={{ color: "#bfbfbf" }}>
+            {selectedEvent ? `Event ID: ${selectedEvent.id}` : ""}
           </div>
         </Header>
 
         <Content className={styles.content}>
           {selectedEvent ? (
-            <div className={styles.detailContainer}>
-              <div className={styles.infoCard}>
-                <h3>错误概览</h3>
-                <div className={styles.errorBrief}>
-                  <p>
-                    <strong>类型:</strong> {errorInfo?.name || "Error"}
-                  </p>
-                  <p>
-                    <strong>消息:</strong> {errorInfo?.message}
-                  </p>
-                  <p>
-                    <strong>时间:</strong>{" "}
-                    {dayjs(selectedEvent.createdAt).format(
-                      "YYYY-MM-DD HH:mm:ss",
-                    )}
-                  </p>
-                </div>
-                {errorInfo?.stack && (
-                  <div className={styles.stackTrace}>
-                    <h4>堆栈详情:</h4>
-                    <pre>{errorInfo.stack}</pre>
+            <div className={styles.detailWrapper}>
+              <div className={styles.detailCard}>
+                <div className={styles.sectionTitle}>错误堆栈</div>
+                <div className={styles.errorInfo}>
+                  <div
+                    style={{
+                      marginBottom: 12,
+                      color: "#cf1322",
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {errorInfo?.name}: {errorInfo?.message}
                   </div>
-                )}
-              </div>
-
-              <div className={styles.playerCard}>
-                <div className={styles.playerHeader}>
-                  <h3>行为回放</h3>
-                  <Tooltip title="播放用户出错前的操作轨迹">
-                    <PlayCircleOutlined style={{ color: "#1890ff" }} />
-                  </Tooltip>
+                  <div
+                    style={{ color: "#8c8c8c", fontSize: 12, marginBottom: 8 }}
+                  >
+                    时间:{" "}
+                    {errorInfo?.time ||
+                      dayjs(selectedEvent.createdAt).format(
+                        "YYYY-MM-DD HH:mm:ss",
+                      )}
+                  </div>
+                  {errorInfo?.stack}
                 </div>
-                <div className={styles.playerWrapper}>
+              </div>
+              <div className={styles.detailCard}>
+                <div className={styles.sectionTitle}>行为回放</div>
+                <div className={styles.playerContainer}>
                   <div
                     ref={replayerContainer}
                     className={styles.rrwebPlayer}
@@ -274,7 +254,10 @@ export default function SupervisePage() {
             </div>
           ) : (
             <div className={styles.empty}>
-              <Empty description="请从左侧选择一个错误事件查看详情" />
+              <Empty
+                image={Empty.PRESENTED_IMAGE_SIMPLE}
+                description="请从左侧选择一个错误事件查看详情"
+              />
             </div>
           )}
         </Content>

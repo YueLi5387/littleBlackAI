@@ -18,8 +18,8 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <AntdRegistry>
-          <Monitoring />
           {children}
+          <Monitoring />
         </AntdRegistry>{" "}
       </body>
     </html>
