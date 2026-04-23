@@ -24,7 +24,7 @@ export default function Home() {
       </div>
       <div className={styles.footer}>
         <p>{t("common.creator")}: YueLi</p>
-        <p>{t("common.gitee")}：xxxxxxxxxx</p>
+        {/* <p>{t("common.gitee")}：xxxxxxxxxx</p> */}
       </div>
     </div>
   );
