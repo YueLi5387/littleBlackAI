@@ -1,5 +1,12 @@
 "use client";
-import { memo, useContext, useEffect, useRef } from "react";
+import {
+  memo,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import styles from "./chatDetail.module.scss";
 
 import { ChatInput } from "@/components/chatInput/chatInput";
@@ -13,6 +20,8 @@ import { DeleteOutlined } from "@ant-design/icons";
 import { message, Popconfirm } from "antd";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import throttle from "lodash/throttle";
+import { useTranslation } from "react-i18next";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = {
@@ -61,6 +70,7 @@ const MessageItem = memo(
     isStreaming: boolean;
     onDelete: (aiId: string) => void;
   }) => {
+    const { t } = useTranslation();
     return (
       <div
         className={`${styles.message} ${
@@ -88,10 +98,10 @@ const MessageItem = memo(
           {message.role === "assistant" && (
             <div className={styles.actions}>
               <Popconfirm
-                title="删除本条回答"
-                description="确认删除这条 AI 回答吗？"
-                okText="删除"
-                cancelText="取消"
+                title={t("chat.deleteConfirm")}
+                description={t("chat.deleteConfirm")}
+                okText={t("common.back")}
+                cancelText={t("common.back")}
                 onConfirm={() => onDelete(message.id)}
               >
                 <DeleteOutlined className={styles.deleteIcon} />
@@ -107,6 +117,7 @@ const MessageItem = memo(
 MessageItem.displayName = "MessageItem";
 
 export default function ChatPageDeatil() {
+  const { t } = useTranslation();
   const params = useParams<{ chat_id: string }>();
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -182,50 +193,63 @@ export default function ChatPageDeatil() {
   }, [messages]);
 
   // 删除一组msg信息
-  const handleDeleteAssistantReply = async (
-    aiMessageId: string,
-    userMessageId: string,
-  ) => {
-    try {
-      const res1 = (await http.delete(
-        `/api/chat/${chatId}?messageId=${aiMessageId}`,
-      )) as DeleteMessageResponse;
-      const res2 = (await http.delete(
-        `/api/chat/${chatId}?messageId=${userMessageId}`,
-      )) as DeleteMessageResponse;
-      if (res1.code === 0 && res2.code === 0) {
-        setMessages((prev) =>
-          prev.filter(
-            (item) => item.id !== aiMessageId && item.id !== userMessageId,
-          ),
-        );
-        message.success("已删除这条 AI 回答");
-      }
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "删除回答失败，请稍后重试";
-      message.error(errorMessage);
-    }
-  };
+  const handleDeleteAssistantReply = useCallback(
+    throttle(
+      async (aiMessageId: string, userMessageId: string) => {
+        try {
+          const res1 = (await http.delete(
+            `/api/chat/${chatId}?messageId=${aiMessageId}`,
+          )) as DeleteMessageResponse;
+          const res2 = (await http.delete(
+            `/api/chat/${chatId}?messageId=${userMessageId}`,
+          )) as DeleteMessageResponse;
+          if (res1.code === 0 && res2.code === 0) {
+            setMessages((prev) =>
+              prev.filter(
+                (item) => item.id !== aiMessageId && item.id !== userMessageId,
+              ),
+            );
+            message.success(t("chat.deleteSuccess"));
+          }
+        } catch (error) {
+          const errorMessage =
+            error instanceof Error ? error.message : t("chat.deleteFailed");
+          message.error(errorMessage);
+        }
+      },
+      1000,
+      { trailing: false },
+    ),
+    [chatId, setMessages, t],
+  );
+
+  const handleMessageDelete = useCallback(
+    (aiId: string, index: number) => {
+      const userMsgId = messages[index - 1]?.id;
+      if (userMsgId) void handleDeleteAssistantReply(aiId, userMsgId);
+    },
+    [messages, handleDeleteAssistantReply],
+  );
+
+  const messageItems = useMemo(() => {
+    return (messages as ChatMessage[]).map((message, index) => (
+      <MessageItem
+        key={message.id}
+        message={message}
+        isStreaming={
+          status === "streaming" &&
+          index === messages.length - 1 &&
+          message.role === "assistant"
+        }
+        onDelete={(aiId) => handleMessageDelete(aiId, index)}
+      />
+    ));
+  }, [messages, status, handleMessageDelete]);
 
   return (
     <div className={styles.chatDetailPage}>
       <div className={styles.content}>
-        {(messages as ChatMessage[]).map((message, index) => (
-          <MessageItem
-            key={message.id}
-            message={message}
-            isStreaming={
-              status === "streaming" &&
-              index === messages.length - 1 &&
-              message.role === "assistant"
-            }
-            onDelete={(aiId) => {
-              const userMsgId = messages[index - 1]?.id;
-              if (userMsgId) void handleDeleteAssistantReply(aiId, userMsgId);
-            }}
-          />
-        ))}
+        {messageItems}
         {/* 让最新消息一直显示在底部 */}
         <div ref={latestMsgRef}></div>
       </div>

@@ -1,7 +1,12 @@
 import { drizzle } from "drizzle-orm/postgres-js";
 import { and, desc, eq } from "drizzle-orm";
 import postgres from "postgres";
-import { chatsTable, messagesTable } from "@/db/schema";
+import {
+  chatsTable,
+  errorEventsTable,
+  messagesTable,
+  performanceEventsTable,
+} from "@/db/schema";
 
 // Supabase 连接池需要关闭 prepare
 const client = postgres(process.env.DATABASE_URL!, { prepare: false });
@@ -93,4 +98,59 @@ export const deleteMessageById = async (chatId: number, messageId: number) => {
     .returning({ id: messagesTable.id });
 
   return deleted ?? null;
+};
+
+// 新增错误日志
+export const addErrorEvent = async (error: any, events: any) => {
+  const [event] = await db
+    .insert(errorEventsTable)
+    .values({
+      error,
+      events,
+    })
+    .returning({ id: errorEventsTable.id });
+  return event;
+};
+
+// 获取所有错误日志
+export const getAllErrorEvents = async () => {
+  return await db
+    .select()
+    .from(errorEventsTable)
+    .orderBy(desc(errorEventsTable.createdAt));
+};
+
+// 新增性能日志
+export const addPerformanceEvent = async (
+  userId: string | null,
+  path: string,
+  metrics: any,
+) => {
+  const [event] = await db
+    .insert(performanceEventsTable)
+    .values({
+      userId,
+      path,
+      metrics,
+    })
+    .returning({ id: performanceEventsTable.id });
+  return event;
+};
+
+// 获取所有性能日志
+export const getAllPerformanceEvents = async () => {
+  return await db
+    .select()
+    .from(performanceEventsTable)
+    .orderBy(desc(performanceEventsTable.createdAt));
+};
+
+// 根据 ID 获取错误事件
+export const getErrorEventById = async (id: number) => {
+  const [event] = await db
+    .select()
+    .from(errorEventsTable)
+    .where(eq(errorEventsTable.id, id));
+
+  return event ?? null;
 };

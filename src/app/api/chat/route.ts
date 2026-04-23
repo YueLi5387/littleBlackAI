@@ -45,7 +45,7 @@ export async function POST(req: NextRequest) {
     }
 
     const safeTitle = (title ?? "").trim() || "新对话";
-    const safeModel = (model ?? "").trim() || "deepseek-chat";
+    const safeModel = (model ?? "").trim() || "qwen3.5-flash";
     const chat = await addChat(user.id, safeTitle, safeModel);
 
     return NextResponse.json(

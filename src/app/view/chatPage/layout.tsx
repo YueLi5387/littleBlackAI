@@ -1,19 +1,23 @@
 "use client";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusCircleOutlined,
 } from "@ant-design/icons";
-import { Button, Layout, Menu, theme } from "antd";
+import { Button, Layout, Menu, theme, Select } from "antd";
 import styles from "./view.module.scss";
 import http from "@/lib/utils/http";
 import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { createClient } from "@/lib/supabase/client";
 import dayjs from "dayjs";
+import throttle from "lodash/throttle";
+import { useTranslation } from "react-i18next";
+import { useMemo } from "react";
 
 const { Header, Sider, Content } = Layout;
+const { Option } = Select;
 
 type ChatItem = {
   id: string | number;
@@ -36,6 +40,7 @@ export default function ChatLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const { t, i18n } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
   const router = useRouter();
   const params = useParams<{ chat_id: string }>();
@@ -44,12 +49,13 @@ export default function ChatLayout({
   } = theme.useToken();
   const supabase = createClient();
   const [chat, setChat] = useState<ChatItem[]>([]);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // 获取当前对话标题
   const currentChat = chat.find((item) => String(item.id) === params.chat_id);
-  const headerTitle = currentChat?.title || "新对话";
+  const headerTitle = currentChat?.title || t("common.newChat");
 
-  // 进入页面拉取聊天列表
+  // 进入页面拉取聊天列表和管理员状态
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -61,24 +67,109 @@ export default function ChatLayout({
         console.error("获取聊天列表失败:", error);
       }
     };
+    // 判断是不是管理员，是管理员显示“监控按钮”
+    const checkAdmin = async () => {
+      try {
+        const res = (await http.get("/api/admin/check")) as {
+          code: number;
+          data: { isAdmin: boolean };
+        };
+        if (res.code === 0) {
+          setIsAdmin(res.data.isAdmin);
+        }
+      } catch (error) {
+        console.error("检查管理员状态失败:", error);
+      }
+    };
+
     fetchChats();
+    checkAdmin();
   }, []);
 
   // 新建对话
-  const handleNewChat = () => {
-    router.push(ROUTES.chatHome);
-  };
+  const handleNewChat = useCallback(
+    throttle(
+      () => {
+        router.push(ROUTES.chatHome);
+      },
+      1000,
+      { trailing: false },
+    ),
+    [router],
+  );
 
   // 跳转特定对话组
   const handleMenuClick = ({ key }: { key: string }) => {
     router.push(ROUTES.chatDetail(key));
   };
 
+  // 跳转监控页面
+  const handleGoSupervise = useCallback(
+    throttle(
+      () => {
+        router.push(ROUTES.supervise);
+      },
+      1000,
+      { trailing: false },
+    ),
+    [router],
+  );
+
   // 退出登录
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    router.replace(ROUTES.login);
-  };
+  const handleLogout = useCallback(
+    throttle(
+      async () => {
+        await supabase.auth.signOut();
+        router.replace(ROUTES.login);
+      },
+      1000,
+      { trailing: false },
+    ),
+    [supabase.auth, router],
+  );
+  // 测试报错
+  // const test = () => {
+  //   console.log("dsds", oooo);
+  //   http.get("/api/sss");
+  // };
+
+  const menuItems = useMemo(() => {
+    return chat.map((item) => ({
+      key: String(item.id),
+      label: (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "5px",
+            lineHeight: "1.2",
+            padding: "4px 0",
+          }}
+        >
+          <span
+            style={{
+              fontSize: "16px",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {item.title}
+          </span>
+          {!collapsed && (
+            <span
+              style={{
+                fontSize: "10px",
+                color: "rgba(255, 255, 255, 0.45)",
+              }}
+            >
+              {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+            </span>
+          )}
+        </div>
+      ),
+    }));
+  }, [chat, collapsed]);
 
   return (
     <Layout className={styles.layout}>
@@ -96,7 +187,7 @@ export default function ChatLayout({
             block
             style={{ marginBottom: "16px" }}
           >
-            {!collapsed && "新建对话"}
+            {!collapsed && t("common.newChat")}
           </Button>
         </div>
         <Menu
@@ -104,41 +195,7 @@ export default function ChatLayout({
           mode="inline"
           selectedKeys={params.chat_id ? [params.chat_id] : []}
           onClick={handleMenuClick}
-          items={chat.map((item) => ({
-            key: String(item.id),
-            label: (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "5px",
-                  lineHeight: "1.2",
-                  padding: "4px 0",
-                }}
-              >
-                <span
-                  style={{
-                    fontSize: "16px",
-                    overflow: "hidden",
-                    textOverflow: "ellipsis",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  {item.title}
-                </span>
-                {!collapsed && (
-                  <span
-                    style={{
-                      fontSize: "10px",
-                      color: "rgba(255, 255, 255, 0.45)",
-                    }}
-                  >
-                    {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
-                  </span>
-                )}
-              </div>
-            ),
-          }))}
+          items={menuItems}
         />
       </Sider>
       <Layout className={styles.right}>
@@ -146,6 +203,14 @@ export default function ChatLayout({
           style={{ padding: 0, background: colorBgContainer }}
           className={styles.header}
         >
+          {/* ------测试报错--- */}
+          {/* 
+          <form>
+            <button onClick={() => test()}>dihdiwhdiwh</button>
+            <input type="text" />
+          </form> */}
+          {/* --------- */}
+
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
@@ -157,9 +222,26 @@ export default function ChatLayout({
             }}
           />
           <h1 className={styles.title}>{headerTitle}</h1>
-          <Button type="text" onClick={handleLogout}>
-            退出登录
-          </Button>
+          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            <Select
+              value={i18n.language.split("-")[0]} // 处理 zh-CN 这种情况
+              style={{ width: 100 }}
+              onChange={(value) => i18n.changeLanguage(value)}
+              size="small"
+            >
+              <Option value="zh">中文</Option>
+              <Option value="en">English</Option>
+              <Option value="jp">日本語</Option>
+            </Select>
+            {isAdmin && (
+              <Button type="primary" ghost onClick={handleGoSupervise}>
+                {t("common.monitor")}
+              </Button>
+            )}
+            <Button type="primary" ghost onClick={handleLogout}>
+              {t("common.logout")}
+            </Button>
+          </div>
         </Header>
         <Content
           style={{

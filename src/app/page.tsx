@@ -3,27 +3,28 @@ import styles from "./app.module.scss";
 import { Button } from "antd";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
+import { useTranslation } from "react-i18next";
 
 export default function Home() {
+  const { t } = useTranslation();
   const router = useRouter();
-
   return (
     <div className={styles.app}>
       <div className={styles.content}>
-        <div className={styles.title}>小黑</div>
-        <div className={styles.subtitle}>最懂你的ai助手</div>
+        <div className={styles.title}>{t("common.appName")}</div>
+        <div className={styles.subtitle}>{t("common.appSubtitle")}</div>
         <Button
           type="primary"
           size="large"
           className={styles.login}
           onClick={() => router.push(ROUTES.login)}
         >
-          开始对话
+          {t("common.startChat")}
         </Button>
       </div>
       <div className={styles.footer}>
-        <p>创作者:YueLi</p>
-        <p>gittee地址：xxxxxxxxxx</p>
+        <p>{t("common.creator")}: YueLi</p>
+        {/* <p>{t("common.gitee")}：xxxxxxxxxx</p> */}
       </div>
     </div>
   );

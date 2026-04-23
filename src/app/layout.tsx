@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { AntdRegistry } from "@ant-design/nextjs-registry";
+import Monitoring from "@/components/client/recordJSError/recordJSError";
+import I18nProvider from "@/components/client/I18nProvider";
 
 export const metadata: Metadata = {
   title: "小黑智能ai",
@@ -16,7 +18,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body>
-        <AntdRegistry>{children}</AntdRegistry>
+        <I18nProvider>
+          <AntdRegistry>
+            {children}
+            <Monitoring />
+          </AntdRegistry>
+        </I18nProvider>
       </body>
     </html>
   );

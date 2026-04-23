@@ -4,4 +4,5 @@ export const ROUTES = {
   authConfirm: "/api/auth/confirm",
   chatHome: "/view/chatPage",
   chatDetail: (chatId: string) => `/view/chatPage/${chatId}`,
+  supervise: "/view/supervisePage",
 } as const;
