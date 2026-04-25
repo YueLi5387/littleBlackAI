@@ -14,7 +14,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
-import { Ctx } from "../layout";
+import { Ctx } from "../ChatClientLayout";
 import http from "@/lib/utils/http";
 import { DeleteOutlined } from "@ant-design/icons";
 import { message, Popconfirm } from "antd";
@@ -99,9 +99,8 @@ const MessageItem = memo(
             <div className={styles.actions}>
               <Popconfirm
                 title={t("chat.deleteConfirm")}
-                description={t("chat.deleteConfirm")}
-                okText={t("common.back")}
-                cancelText={t("common.back")}
+                okText={t("common.confirm")}
+                cancelText={t("common.cancel")}
                 onConfirm={() => onDelete(message.id)}
               >
                 <DeleteOutlined className={styles.deleteIcon} />

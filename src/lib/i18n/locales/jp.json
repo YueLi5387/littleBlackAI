@@ -46,7 +46,11 @@
     "getPerfFailed": "パフォーマンスデータの取得に失敗しました",
     "perfConnectFailed": "パフォーマンスAPIへの接続に失敗しました。ネットワークまたはデータベースを確認してください",
     "selectErrorHint": "左側のエラーを選択して詳細を表示してください",
-    "deleteFailed": "回答の削除に失敗しました。後でもう一度お試しください。"
+    "deleteFailed": "回答の削除に失敗しました。後でも由一次お試しください。",
+    "errorStack": "エラースタック",
+    "behaviorReplay": "動作再生",
+    "time": "時間",
+    "errorTest": "エラーテストを実行"
   },
   "chat": {
     "welcome": "こんにちは、何かお手伝いできることはありますか？",

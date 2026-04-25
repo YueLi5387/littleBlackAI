@@ -327,7 +327,7 @@ export default function SupervisePage() {
               <div className={styles.detailWrapper}>
                 <div className={styles.detailCard}>
                   <div className={styles.sectionTitle}>
-                    {t("common.errorDetail")}
+                    {t("common.errorStack")}
                   </div>
                   <div className={styles.errorInfo}>
                     <div
@@ -346,7 +346,7 @@ export default function SupervisePage() {
                         marginBottom: 8,
                       }}
                     >
-                      时间:{" "}
+                      {t("common.time")}:{" "}
                       {errorInfo?.time ||
                         dayjs(selectedEvent.createdAt).format(
                           "YYYY-MM-DD HH:mm:ss",
@@ -356,7 +356,7 @@ export default function SupervisePage() {
                   </div>
                 </div>
                 <div className={styles.detailCard}>
-                  <div className={styles.sectionTitle}>行为回放</div>
+                  <div className={styles.sectionTitle}>{t("common.behaviorReplay")}</div>
                   <div className={styles.playerContainer}>
                     <div
                       ref={replayerContainer}
@@ -440,7 +440,7 @@ export default function SupervisePage() {
                                 TTFB: {item.metrics.ttfb?.toFixed(0) || "-"}ms
                               </Col>
                               <Col>
-                                Time:{" "}
+                                {t("common.time")}:{" "}
                                 {dayjs(item.createdAt).format(
                                   "YYYY-MM-DD HH:mm:ss",
                                 )}

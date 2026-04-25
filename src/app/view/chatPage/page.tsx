@@ -10,18 +10,6 @@ type ChatPart = { type: string; text?: string };
 type ChatMessage = { id: string; role: string; parts: ChatPart[] };
 
 export default function ChatPage() {
-  // 部署测试--------------------
-  console.log("=== 调试环境变量 ===");
-  console.log("SUPABASE_URL:", process.env.SUPABASE_URL);
-  console.log(
-    "SUPABASE_SERVICE_ROLE_KEY exists:",
-    !!process.env.SUPABASE_SERVICE_ROLE_KEY,
-  );
-  console.log(
-    "NEXT_PUBLIC_SUPABASE_URL:",
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-  );
-  // ---------------------
   const { t } = useTranslation();
   const { messages, sendMessage } = useChat({
     transport: new DefaultChatTransport({ api: "/api/message" }),

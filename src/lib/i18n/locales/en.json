@@ -46,7 +46,11 @@
     "getPerfFailed": "Failed to get performance data",
     "perfConnectFailed": "Failed to connect to performance API, please check network or database",
     "selectErrorHint": "Please select an error event from the left to view details",
-    "deleteFailed": "Failed to delete response, please try again later"
+    "deleteFailed": "Failed to delete response, please try again later",
+    "errorStack": "Error Stack",
+    "behaviorReplay": "Behavior Replay",
+    "time": "Time",
+    "errorTest": "Error Test"
   },
   "chat": {
     "welcome": "Hello, how can I help you today?",
