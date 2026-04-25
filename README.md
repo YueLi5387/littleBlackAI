@@ -30,6 +30,32 @@ git clone https://github.com/YueLi5387/littleBlackAI.git
 pnpm i
 ```
 
+新增.env文件，自行配置以下信息
+
+```
+
+NEXT_PUBLIC_SUPABASE_URL='supabase地址'
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY='supabase秘钥'
+
+
+# ai相关
+DEEPSEEK_API_KEY = 'deepseek-api秘钥'
+
+
+# 数据库
+DATABASE_URL="数据库地址"
+
+
+# 我的邮箱
+MY_QQ_EMAIL = "自己的邮箱"
+# 我的邮箱SMTP授权码
+MY_QQ_AUTH_CODE = "自己的邮箱SMTP授权码"
+
+# axios请求基地址
+AXIOS_BASE_URL = "自己的网站地址"
+
+```
+
 ```
 pnpm dev
 ```
