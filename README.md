@@ -16,6 +16,10 @@
 
 > 传送门：[github](https://github.com/YueLi5387/littleBlackAI) 、 [gitee](https://gitee.com/duo-ke-yue-li/xiao-hei-ai)
 
+## 效果演示
+示例网站：http://little-black-ai-zgli.vercel.app/
+（需要开vpn使用）（网站不太稳定）
+
 ## 技术栈
 
 Next.js + Typescript + Ant Design + ai-sdk + react-i18next + react-markdown + rrweb + Drizzle ORM + Supabase
@@ -52,7 +56,7 @@ MY_QQ_EMAIL = "自己的邮箱"
 MY_QQ_AUTH_CODE = "自己的邮箱SMTP授权码"
 
 # axios请求基地址
-AXIOS_BASE_URL = "自己的网站地址"
+AXIOS_BASE_URL = "自己的请求地址"
 
 ```
 
@@ -60,6 +64,3 @@ AXIOS_BASE_URL = "自己的网站地址"
 pnpm dev
 ```
 
-## 项目运行
-
-需要开启vpn使用网站，否则容易报错。
