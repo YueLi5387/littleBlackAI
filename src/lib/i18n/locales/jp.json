@@ -5,7 +5,9 @@
     "monitor": "モニター",
     "send": "送信",
     "stop": "停止",
-    "placeholder": "内容を入力してください。Shift + Enterで改行します",
+    "placeholder": "内容を入力してください",
+    "emailfalse": "正しいメールアドレス形式を入力してください",
+    "passwordfalse": "パスワード長を入力してください（6文字以上）",
     "thinking": "考え中...",
     "errorDetail": "エラー詳細",
     "performanceMonitor": "パフォーマンス",
@@ -46,7 +48,13 @@
     "getPerfFailed": "パフォーマンスデータの取得に失敗しました",
     "perfConnectFailed": "パフォーマンスAPIへの接続に失敗しました。ネットワークまたはデータベースを確認してください",
     "selectErrorHint": "左側のエラーを選択して詳細を表示してください",
-    "deleteFailed": "回答の削除に失敗しました。後でもう一度お試しください。"
+    "deleteFailed": "回答の削除に失敗しました。後でも由一次お試しください。",
+    "errorStack": "エラースタック",
+    "behaviorReplay": "動作再生",
+    "time": "時間",
+    "errorTest": "エラーテストを実行",
+    "confirm": "確認",
+    "cancel": "キャンセル"
   },
   "chat": {
     "welcome": "こんにちは、何かお手伝いできることはありますか？",

@@ -44,32 +44,24 @@ export async function updateSession(request: NextRequest) {
 
   //未登录重定向逻辑
   // 条件：
-  // 1. 无用户会话（!user）
-  // 2. 当前访问的不是登录页（避免死循环：登录页本身不需要重定向）
+  // 1. 无用户会话
+  // 2. 当前访问的不是登录页
   // 3. 当前访问的不是auth回调页（Supabase登录回调需要放行）
-  if (
-    !user &&
-    request.nextUrl.pathname !== "/" &&
-    !request.nextUrl.pathname.startsWith(ROUTES.login) &&
-    !request.nextUrl.pathname.startsWith(ROUTES.authConfirm)
-  ) {
+  // 4. 当前访问的不是公开的监控 API（上报性能和错误需要放行）
+  const isPublicPath =
+    request.nextUrl.pathname === "/" ||
+    request.nextUrl.pathname.startsWith(ROUTES.login) ||
+    request.nextUrl.pathname.startsWith(ROUTES.authConfirm) ||
+    request.nextUrl.pathname === "/api/performanceEvents" ||
+    request.nextUrl.pathname === "/api/errorEvents";
+
+  if (!user && !isPublicPath) {
     // 没有登录，重定向到登录页
     const url = request.nextUrl.clone();
     url.pathname = ROUTES.login;
     // 返回重定向响应
     return NextResponse.redirect(url);
   }
-
-  // 响应返回规则
-  // 重要：必须返回supabaseResponse对象，不能新建空的NextResponse！
-  // 如果需要自定义响应，必须遵循4步：
-  // 1. 新建响应时传入request：const myRes = NextResponse.next({ request })
-  // 2. 复制cookie：myRes.cookies.setAll(supabaseResponse.cookies.getAll())
-  // 3. 自定义修改（如改header、状态码），但不要动cookie
-  // 4. 返回myRes
-  // 否则会导致浏览器和服务端cookie不同步，用户会话提前终止！
-
-  // 返回处理后的响应（包含cookie更新/或正常放行）
 
   return supabaseResponse;
 }

@@ -51,6 +51,9 @@
         font-size: 20px;
         font-weight: 500;
         color: #262626;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
 
       :global(.ant-btn) {

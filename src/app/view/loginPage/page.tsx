@@ -1,5 +1,6 @@
 "use client";
 import { Button, Card, Checkbox, Form, Input, message, Segmented } from "antd";
+import { SyncOutlined } from "@ant-design/icons";
 import styles from "./login.module.scss";
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -168,7 +169,7 @@ function LoginContent() {
                 name="email"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { type: "email", message: t("common.email") },
+                  { type: "email", message: t("common.emailfalse") },
                 ]}
               >
                 <Input />
@@ -179,7 +180,7 @@ function LoginContent() {
                 name="password"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { min: 6, message: t("common.password") },
+                  { min: 6, message: t("common.passwordfalse") },
                 ]}
               >
                 <Input.Password />
@@ -190,7 +191,11 @@ function LoginContent() {
               </Form.Item>
 
               <Form.Item label={null}>
-                <Button type="primary" htmlType="submit" disabled={isLoading}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={isLoading && { icon: <SyncOutlined spin /> }}
+                >
                   {isLoading ? t("common.loggingIn") : t("common.login")}
                 </Button>
               </Form.Item>
@@ -211,7 +216,7 @@ function LoginContent() {
                 name="email"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { type: "email", message: t("common.email") },
+                  { type: "email", message: t("common.emailfalse") },
                 ]}
               >
                 <Input />
@@ -222,7 +227,7 @@ function LoginContent() {
                 name="password"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { min: 6, message: t("common.password") },
+                  { min: 6, message: t("common.passwordfalse") },
                 ]}
               >
                 <Input.Password />
@@ -248,7 +253,11 @@ function LoginContent() {
               </Form.Item>
 
               <Form.Item label={null}>
-                <Button type="primary" htmlType="submit" disabled={isLoading}>
+                <Button
+                  type="primary"
+                  htmlType="submit"
+                  loading={isLoading && { icon: <SyncOutlined spin /> }}
+                >
                   {isLoading ? t("common.registering") : t("common.register")}
                 </Button>
               </Form.Item>

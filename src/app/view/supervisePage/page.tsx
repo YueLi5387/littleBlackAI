@@ -29,7 +29,6 @@ import styles from "./supervise.module.scss";
 import http from "@/lib/utils/http";
 import { ROUTES } from "@/lib/constants/routes";
 import dayjs from "dayjs";
-import rrwebPlayer from "rrweb-player";
 import "rrweb-player/dist/style.css";
 import { useTranslation } from "react-i18next";
 
@@ -157,19 +156,24 @@ export default function SupervisePage() {
       );
 
       if (events && events.length > 2 && hasInitEvent) {
-        try {
-          playerInstance.current = new rrwebPlayer({
-            target: replayerContainer.current,
-            props: {
-              events,
-              width: replayerContainer.current.offsetWidth || 800,
-              height: 500,
-              autoPlay: false,
-            },
-          });
-        } catch (e) {
-          console.error("rrweb-player 初始化失败:", e);
-        }
+        // 动态异步加载播放器
+        const initPlayer = async () => {
+          try {
+            const { default: rrwebPlayer } = await import("rrweb-player");
+            playerInstance.current = new rrwebPlayer({
+              target: replayerContainer.current!,
+              props: {
+                events,
+                width: replayerContainer.current!.offsetWidth || 800,
+                height: 500,
+                autoPlay: false,
+              },
+            });
+          } catch (e) {
+            console.error("rrweb-player 加载失败:", e);
+          }
+        };
+        initPlayer();
       } else {
         replayerContainer.current.innerHTML =
           '<div style="color: #999; text-align: center; padding: 20px;">回放数据不完整（缺少页面初始化信息）</div>';
@@ -327,7 +331,7 @@ export default function SupervisePage() {
               <div className={styles.detailWrapper}>
                 <div className={styles.detailCard}>
                   <div className={styles.sectionTitle}>
-                    {t("common.errorDetail")}
+                    {t("common.errorStack")}
                   </div>
                   <div className={styles.errorInfo}>
                     <div
@@ -346,7 +350,7 @@ export default function SupervisePage() {
                         marginBottom: 8,
                       }}
                     >
-                      时间:{" "}
+                      {t("common.time")}:{" "}
                       {errorInfo?.time ||
                         dayjs(selectedEvent.createdAt).format(
                           "YYYY-MM-DD HH:mm:ss",
@@ -356,7 +360,9 @@ export default function SupervisePage() {
                   </div>
                 </div>
                 <div className={styles.detailCard}>
-                  <div className={styles.sectionTitle}>行为回放</div>
+                  <div className={styles.sectionTitle}>
+                    {t("common.behaviorReplay")}
+                  </div>
                   <div className={styles.playerContainer}>
                     <div
                       ref={replayerContainer}
@@ -440,7 +446,7 @@ export default function SupervisePage() {
                                 TTFB: {item.metrics.ttfb?.toFixed(0) || "-"}ms
                               </Col>
                               <Col>
-                                Time:{" "}
+                                {t("common.time")}:{" "}
                                 {dayjs(item.createdAt).format(
                                   "YYYY-MM-DD HH:mm:ss",
                                 )}
