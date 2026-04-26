@@ -5,7 +5,9 @@
     "monitor": "モニター",
     "send": "送信",
     "stop": "停止",
-    "placeholder": "内容を入力してください。Shift + Enterで改行します",
+    "placeholder": "内容を入力してください",
+    "emailfalse": "正しいメールアドレス形式を入力してください",
+    "passwordfalse": "パスワード長を入力してください（6文字以上）",
     "thinking": "考え中...",
     "errorDetail": "エラー詳細",
     "performanceMonitor": "パフォーマンス",
@@ -50,7 +52,9 @@
     "errorStack": "エラースタック",
     "behaviorReplay": "動作再生",
     "time": "時間",
-    "errorTest": "エラーテストを実行"
+    "errorTest": "エラーテストを実行",
+    "confirm": "確認",
+    "cancel": "キャンセル"
   },
   "chat": {
     "welcome": "こんにちは、何かお手伝いできることはありますか？",

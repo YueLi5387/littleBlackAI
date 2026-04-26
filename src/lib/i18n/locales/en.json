@@ -5,11 +5,13 @@
     "monitor": "Monitor",
     "send": "Send",
     "stop": "Stop",
-    "placeholder": "Enter content, Shift + Enter for new line",
+    "placeholder": "Enter content",
     "thinking": "Thinking...",
     "errorDetail": "Error Details",
+    "emailfalse": "Please enter a valid email format",
     "performanceMonitor": "Performance",
     "errorMonitor": "Error Logs",
+    "passwordfalse": "Password length must be at least 6 characters",
     "noRecord": "No Records",
     "back": "Back",
     "avgLoadTime": "Avg Load Time",
@@ -50,7 +52,9 @@
     "errorStack": "Error Stack",
     "behaviorReplay": "Behavior Replay",
     "time": "Time",
-    "errorTest": "Error Test"
+    "errorTest": "Error Test",
+    "confirm": "Confirm",
+    "cancel": "Cancel"
   },
   "chat": {
     "welcome": "Hello, how can I help you today?",

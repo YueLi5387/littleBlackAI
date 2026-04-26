@@ -37,11 +37,13 @@ export const Ctx = React.createContext<{
 interface ChatClientLayoutProps {
   children: React.ReactNode;
   initialChats: ChatItem[];
+  isAdmin: boolean;
 }
 
 export default function ChatClientLayout({
   children,
   initialChats,
+  isAdmin: initialIsAdmin,
 }: ChatClientLayoutProps) {
   const { t, i18n } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
@@ -52,29 +54,11 @@ export default function ChatClientLayout({
   } = theme.useToken();
   const supabase = createClient();
   const [chat, setChat] = useState<ChatItem[]>(initialChats);
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
 
   // 获取当前对话标题
   const currentChat = chat.find((item) => String(item.id) === params.chat_id);
   const headerTitle = currentChat?.title || t("common.newChat");
-
-  // 进入页面检查管理员状态（列表已通过 SSR 预获取）
-  useEffect(() => {
-    const checkAdmin = async () => {
-      try {
-        const res = (await http.get("/api/admin/check")) as {
-          code: number;
-          data: { isAdmin: boolean };
-        };
-        if (res.code === 0) {
-          setIsAdmin(res.data.isAdmin);
-        }
-      } catch (error) {
-        console.error("检查管理员状态失败:", error);
-      }
-    };
-    checkAdmin();
-  }, []);
 
   // 新建对话
   const handleNewChat = useCallback(

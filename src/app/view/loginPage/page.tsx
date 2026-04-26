@@ -169,7 +169,7 @@ function LoginContent() {
                 name="email"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { type: "email", message: t("common.email") },
+                  { type: "email", message: t("common.emailfalse") },
                 ]}
               >
                 <Input />
@@ -180,7 +180,7 @@ function LoginContent() {
                 name="password"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { min: 6, message: t("common.password") },
+                  { min: 6, message: t("common.passwordfalse") },
                 ]}
               >
                 <Input.Password />
@@ -216,7 +216,7 @@ function LoginContent() {
                 name="email"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { type: "email", message: t("common.email") },
+                  { type: "email", message: t("common.emailfalse") },
                 ]}
               >
                 <Input />
@@ -227,7 +227,7 @@ function LoginContent() {
                 name="password"
                 rules={[
                   { required: true, message: t("common.placeholder") },
-                  { min: 6, message: t("common.password") },
+                  { min: 6, message: t("common.passwordfalse") },
                 ]}
               >
                 <Input.Password />
