@@ -200,7 +200,10 @@ export default function ChatClientLayout({
                   type="primary"
                   ghost
                   onClick={() => {
-                    console.log("错误演示，控制台打印---》", oooError);
+                    console.log(
+                      "错误演示，控制台打印---",
+                      (window as any).ooojijsahicxb非.name,
+                    );
                   }}
                   danger
                 >
