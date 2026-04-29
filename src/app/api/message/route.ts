@@ -44,8 +44,11 @@ export async function POST(req: NextRequest) {
     .join("")
     .trim();
 
+  let userMessageId: string | undefined;
+
   if (chatId && Number.isFinite(chatId) && latestUserText) {
-    await addMessage(chatId, "user", latestUserText); //把用户发送的信息存数据库
+    const userMsg = await addMessage(chatId, "user", latestUserText); //把用户发送的信息存数据库
+    userMessageId = String(userMsg.id);
 
     // 异步生成标题，不阻塞聊天响应
     if (isFirstMessage) {
@@ -59,10 +62,6 @@ export async function POST(req: NextRequest) {
           if (title) {
             const cleanTitle = title.trim();
             await updateChatTitle(chatId, cleanTitle);
-
-            // 关键：在流式响应末尾添加特殊标记，通知前端更新标题
-            // 但因为是 toUIMessageStreamResponse，我们不能直接改 Body
-            // 我们通过 onFinish 结束后，前端会有一个 finish 状态，我们让前端去重新拉取一次标题
           }
         } catch (error) {
           console.error("生成标题失败:", error);
@@ -76,14 +75,51 @@ export async function POST(req: NextRequest) {
     messages: convertToModelMessages(messages), //转换成ai厂商需要的格式
     system:
       "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，会说多国语言，能根据用户的提问调整对应的回答语言，是人类的好帮手。", //系统提示词
-    // 当流式响应返回完成时调用，将生成的文本保存到数据库中
-    onFinish: async ({ text }) => {
-      if (!chatId || !Number.isFinite(chatId)) return;
-      const aiText = text.trim();
-      if (!aiText) return;
-      await addMessage(chatId, "assistant", aiText); //把ai回答的信息存数据库
+  });
+
+  // 自定义 SSE 流实现
+  const encoder = new TextEncoder();
+  const stream = new ReadableStream({
+    async start(controller) {
+      let fullText = "";
+      try {
+        for await (const delta of result.textStream) {
+          fullText += delta;
+          const data = JSON.stringify({ type: "text-delta", delta });
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+        }
+      } catch (error) {
+        console.error("Stream error:", error);
+      } finally {
+        // 无论正常结束还是中止，只要有内容就存入数据库
+        if (chatId && Number.isFinite(chatId) && fullText.trim()) {
+          try {
+            const aiMsg = await addMessage(
+              chatId,
+              "assistant",
+              fullText.trim(),
+            );
+            const idData = JSON.stringify({
+              type: "message-ids",
+              userMessageId,
+              assistantMessageId: String(aiMsg.id),
+            });
+            // 如果连接已关闭，enqueue 会失败，这里 catch 住即可
+            controller.enqueue(encoder.encode(`data: ${idData}\n\n`));
+          } catch (e) {
+            // 连接可能已关闭
+          }
+        }
+        controller.close();
+      }
     },
   });
 
-  return result.toUIMessageStreamResponse(); //返回流式响应
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
 }
