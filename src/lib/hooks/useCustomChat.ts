@@ -16,7 +16,7 @@ interface UseCustomChatOptions {
 export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<"idle" | "streaming">("idle");
-  const abortControllerRef = useRef<AbortController | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null); ///判断是否正在输出
   const messagesRef = useRef<ChatMessage[]>([]);
   const statusRef = useRef<"idle" | "streaming">("idle");
   const onFinishRef = useRef(onFinish);
@@ -30,7 +30,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
       abortControllerRef.current = null;
-      statusRef.current = "idle";
+      statusRef.current = "idle"; //代表已经停止输出
       setStatus("idle");
     }
   }, []);
@@ -41,7 +41,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
       if (statusRef.current === "streaming") return;
 
       const userMsg: ChatMessage = {
-        id: Date.now().toString(),
+        id: Date.now().toString(), //先把id设置为当前时间戳，等输出完成后再更新
         role: "user",
         parts: [{ type: "text", text }],
       };
@@ -70,14 +70,14 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
 
         if (!response.ok) throw new Error("Failed to send message");
 
-        const reader = response.body?.getReader();
+        const reader = response.body?.getReader(); //获取响应体的读取流容器（里边包含很多切片流）
         if (!reader) throw new Error("No reader available");
 
-        const decoder = new TextDecoder();
-        let buffer = "";
+        const decoder = new TextDecoder(); //二进制->文本
+        let buffer = ""; //用来存ai返回的完整文本，存数据库的
 
         while (true) {
-          const { done, value } = await reader.read();
+          const { done, value } = await reader.read(); //读取每个切片流
           if (done) break;
 
           buffer += decoder.decode(value, { stream: true });
@@ -87,10 +87,11 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
           for (const line of lines) {
             if (line.startsWith("data: ")) {
               try {
-                const dataStr = line.slice(6).trim();
+                const dataStr = line.slice(6).trim(); //去掉前置的 "data: "这六个字符，获取有效内容
                 if (!dataStr) continue;
                 const json = JSON.parse(dataStr);
                 if (json.type === "text-delta") {
+                  // 拼接ai返回的文本
                   setMessages((prev) => {
                     const last = prev[prev.length - 1];
                     if (last && last.role === "assistant") {
@@ -108,7 +109,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
                     return prev;
                   });
                 } else if (json.type === "message-ids") {
-                  // 同步真实的数据库 ID
+                  // 同步真实的数据库 ID,AI结束回答后，后端把这最新的一组用户提问和ai回答的存在数据库里生成的真实 ID 发过来了
                   setMessages((prev) => {
                     const next = [...prev];
                     if (next.length >= 2) {

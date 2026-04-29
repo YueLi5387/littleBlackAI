@@ -1,7 +1,7 @@
 import { NextRequest } from "next/server";
 import { streamText, convertToModelMessages, generateText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
-import { addMessage, updateChatTitle } from "@/db";
+import { addMessage, updateChatTitle, getAllMessages } from "@/db";
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const deepSeek = createDeepSeek({
@@ -24,9 +24,6 @@ export async function POST(req: NextRequest) {
   const chatId = chatIdParam ? Number(chatIdParam) : null;
   const payload = (await req.json()) as { messages?: ClientMessage[] }; //前端useChat钩子在发送请求时，会自动把当前页面的所有历史对话内容打包放在 messages 数组里传给后端
   const messages = Array.isArray(payload.messages) ? payload.messages : [];
-
-  // 检查是否是第一条消息，如果是，则生成标题
-  const isFirstMessage = messages.length <= 1;
 
   const latestUserMessage = [...messages].reverse().find((message) => {
     return message.role === "user";
@@ -51,6 +48,10 @@ export async function POST(req: NextRequest) {
     userMessageId = String(userMsg.id);
 
     // 异步生成标题，不阻塞聊天响应
+    // 检查数据库中该对话的消息总数，如果是第一条（或者只有当前插入的这一条），则生成标题
+    const historyMessages = await getAllMessages(chatId);
+    const isFirstMessage = historyMessages.length <= 1;
+
     if (isFirstMessage) {
       (async () => {
         try {
@@ -76,6 +77,8 @@ export async function POST(req: NextRequest) {
     system:
       "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，会说多国语言，能根据用户的提问调整对应的回答语言，是人类的好帮手。", //系统提示词
   });
+  console.dir("result---->", result);
+  console.log("textStream 到底是什么---->", result.textStream);
 
   // 自定义 SSE 流实现
   const encoder = new TextEncoder();
@@ -99,12 +102,13 @@ export async function POST(req: NextRequest) {
               "assistant",
               fullText.trim(),
             );
+            // 返回这组messages的id信息：用户msg的id+ai msg的id
             const idData = JSON.stringify({
               type: "message-ids",
               userMessageId,
               assistantMessageId: String(aiMsg.id),
             });
-            // 如果连接已关闭，enqueue 会失败，这里 catch 住即可
+            // 如果连接已关闭，enqueue 会失败，这里 catch 住就行
             controller.enqueue(encoder.encode(`data: ${idData}\n\n`));
           } catch (e) {
             // 连接可能已关闭
