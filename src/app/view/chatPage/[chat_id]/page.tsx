@@ -21,6 +21,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import throttle from "lodash/throttle";
 import { useTranslation } from "react-i18next";
+import { VirtualList } from "@/components/VirtualList/index";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = {
@@ -215,11 +216,6 @@ export default function ChatPageDeatil() {
     }
   }, [chatId, router, searchParams, sendMessage, context]);
 
-  const latestMsgRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    latestMsgRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   // 删除一组msg信息
   const handleDeleteAssistantReply = useCallback(
     throttle(
@@ -259,28 +255,26 @@ export default function ChatPageDeatil() {
     [messages, handleDeleteAssistantReply],
   );
 
-  const messageItems = useMemo(() => {
-    return (messages as ChatMessage[]).map((message, index) => (
-      <MessageItem
-        key={message.id}
-        message={message}
-        isStreaming={
-          status === "streaming" &&
-          index === messages.length - 1 &&
-          message.role === "assistant"
-        }
-        onDelete={(aiId) => handleMessageDelete(aiId, index)}
-      />
-    ));
-  }, [messages, status, handleMessageDelete]);
-
   return (
     <div className={styles.chatDetailPage}>
-      <div className={styles.content}>
-        {messageItems}
-        {/* 让最新消息一直显示在底部 */}
-        <div ref={latestMsgRef}></div>
-      </div>
+      <VirtualList
+        listData={messages}
+        estimatedItemHeight={39} // 调大预估高度，减少冗余 DOM 渲染
+        autoScrollToBottom={true}
+        className={styles.content}
+        renderItem={(message, index) => (
+          <MessageItem
+            key={(message as ChatMessage).id}
+            message={message as ChatMessage}
+            isStreaming={
+              status === "streaming" &&
+              index === messages.length - 1 &&
+              (message as ChatMessage).role === "assistant"
+            }
+            onDelete={(aiId) => handleMessageDelete(aiId, index)}
+          />
+        )}
+      />
       <div className={styles.footer}>
         <ChatInput
           sendMessage={sendMessage}
