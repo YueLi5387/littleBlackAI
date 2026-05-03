@@ -10,7 +10,7 @@ import React, {
 export interface VirtualListProps<T> {
   listData: T[];
   renderItem: (item: T, index: number) => React.ReactNode;
-  estimatedItemHeight: number; // 初始预估高度，建议 80-120
+  estimatedItemHeight: number; // 初始预估高度
   containerHeight?: number | string;
   bufferScale?: number; // 缓冲区比例，建议聊天场景设为 1 或更高
   autoScrollToBottom?: boolean; // AI 场景核心：是否锚定底部
@@ -51,13 +51,6 @@ export function VirtualList<T>({
 
     return () => resizeObserver.disconnect();
   }, []);
-
-  // 当 listData 长度变化（新消息）或内容变化（流式输出）时，自动滚到底部
-  useEffect(() => {
-    if (autoScrollToBottom && containerRef.current) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
-    }
-  }, [listData]);
 
   // 加入listData的消息条数变化，position也要跟着变化
   useEffect(() => {
@@ -114,6 +107,14 @@ export function VirtualList<T>({
   // 渲染列表的总高度，用来撑开容器
   const totalHeight =
     positions.length > 0 ? positions[positions.length - 1].bottom : 0;
+
+  // 【核心修复：锚定底部】
+  // 只要 totalHeight 变大（说明内容被撑开了），就尝试滚动到底部
+  useEffect(() => {
+    if (autoScrollToBottom && containerRef.current && totalHeight > 0) {
+      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+    }
+  }, [totalHeight, autoScrollToBottom]);
 
   // 【ResizeObserver】
   //解决图片加载、流式输出导致的高度突变。一旦 item 尺寸变化，立即修正 positions
