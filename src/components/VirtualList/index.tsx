@@ -52,7 +52,7 @@ export function VirtualList<T>({
     return () => resizeObserver.disconnect();
   }, []);
 
-  // 加入listData的消息条数变化，position也要跟着变化
+  // 加入listData的消息条数变化，position也要跟着变化，新加入的消息的positon数组item给设成预估值
   useEffect(() => {
     setPositions((prev) => {
       if (prev.length === listData.length) return prev;
@@ -108,39 +108,70 @@ export function VirtualList<T>({
   const totalHeight =
     positions.length > 0 ? positions[positions.length - 1].bottom : 0;
 
-  // 【核心修复：锚定底部】
+  // 锚定底部
   // 只要 totalHeight 变大（说明内容被撑开了），就尝试滚动到底部
+  // 使用 rAF 优化：确保滚动操作在浏览器下一帧渲染前执行，避免高频更新导致的卡顿
   useEffect(() => {
     if (autoScrollToBottom && containerRef.current && totalHeight > 0) {
-      containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      const container = containerRef.current;
+      const rafId = requestAnimationFrame(() => {
+        container.scrollTop = container.scrollHeight;
+      });
+      return () => cancelAnimationFrame(rafId);
     }
   }, [totalHeight, autoScrollToBottom]);
 
+  const pendingUpdates = useRef<Record<number, number>>({}); //暂时储存高度，等屏幕刷新时批量更新
+  const rafId = useRef<number | null>(null);
+
   // 【ResizeObserver】
-  //解决图片加载、流式输出导致的高度突变。一旦 item 尺寸变化，立即修正 positions
+  // 解决图片加载、流式输出导致的高度突变。一旦 item 尺寸变化，立即修正 positions
+  // 使用 rAF 批量更新，避免 AI 吐字时高频触发级联计算导致的性能瓶颈
   // 传入item编号和其真实高度
   const updateItemSize = useCallback((index: number, realHeight: number) => {
-    setPositions((prev) => {
-      const item = prev[index];
-      if (!item || item.height === realHeight) return prev;
+    pendingUpdates.current[index] = realHeight;
 
-      const nextPositions = [...prev];
-      nextPositions[index] = {
-        ...item,
-        height: realHeight,
-        bottom: item.top + realHeight,
-      };
+    if (rafId.current !== null) return;
 
-      // 级联更新：后面所有项的 top/bottom 都要顺延偏移
-      for (let i = index + 1; i < nextPositions.length; i++) {
-        nextPositions[i] = {
-          ...nextPositions[i],
-          top: nextPositions[i - 1].bottom,
-          bottom: nextPositions[i - 1].bottom + nextPositions[i].height,
-        };
-      }
-      return nextPositions;
+    rafId.current = requestAnimationFrame(() => {
+      rafId.current = null;
+      const updates = { ...pendingUpdates.current };
+      pendingUpdates.current = {};
+
+      setPositions((prev) => {
+        const nextPositions = [...prev];
+        let firstChangedIndex = Infinity;
+
+        // 1. 批量应用所有待处理的高度变更
+        Object.entries(updates).forEach(([idxStr, height]) => {
+          const idx = parseInt(idxStr);
+          const item = nextPositions[idx];
+          if (item && item.height !== height) {
+            nextPositions[idx] = { ...item, height, bottom: item.top + height };
+            firstChangedIndex = Math.min(firstChangedIndex, idx);
+          }
+        });
+
+        if (firstChangedIndex === Infinity) return prev;
+
+        // 2. 仅从第一个发生变化的项开始，执行一次性级联更新
+        for (let i = firstChangedIndex + 1; i < nextPositions.length; i++) {
+          nextPositions[i] = {
+            ...nextPositions[i],
+            top: nextPositions[i - 1].bottom,
+            bottom: nextPositions[i - 1].bottom + nextPositions[i].height,
+          };
+        }
+        return nextPositions;
+      });
     });
+  }, []);
+
+  // 清理 raf
+  useEffect(() => {
+    return () => {
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
   }, []);
 
   return (
