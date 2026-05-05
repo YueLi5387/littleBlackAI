@@ -259,6 +259,15 @@ export default function ChatPageDeatil() {
   const [isUploading, setIsUploading] = useState(false);
   const [currentFile, setCurrentFile] = useState<string | null>(null);
 
+  // 新增：进入页面时检查 URL 参数，如果带了 file，说明是从首页上传跳转过来的
+  useEffect(() => {
+    const fileName = searchParams.get("file");
+    if (fileName) {
+      setCurrentFile(decodeURIComponent(fileName));
+      setUseRAG(true);
+    }
+  }, []);
+
   // 文件上传
   const handleFileUpload = async (file: File) => {
     if (!chatId) return;
@@ -273,7 +282,9 @@ export default function ChatPageDeatil() {
       })) as { code: number; message: string };
 
       if (res.code === 0) {
-        message.success(t("common.uploadSuccess"));
+        message.success(
+          t("common.uploadSuccess") || "文件解析成功，已开启知识库问答",
+        );
 
         setCurrentFile(file.name); //设置输入框显示的名字
         setUseRAG(true);
