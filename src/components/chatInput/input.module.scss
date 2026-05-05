@@ -11,6 +11,17 @@
   box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
   border: 1px solid rgba(16, 24, 40, 0.04);
 
+  .inputWrapper {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+
+    .fileTag {
+      padding: 4px 10px;
+    }
+  }
+
   .textarea {
     flex: 1 1 auto;
     width: 100%;
@@ -26,6 +37,17 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 8px;
+
+    .uploadBtn {
+      border: none;
+      background: transparent;
+      color: #666;
+      &:hover {
+        color: #1890ff;
+      }
+    }
+
     .btn {
       padding: 6px 14px;
       height: 36px;

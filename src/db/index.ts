@@ -1,11 +1,12 @@
 import { drizzle } from "drizzle-orm/postgres-js";
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import postgres from "postgres";
 import {
   chatsTable,
   errorEventsTable,
   messagesTable,
   performanceEventsTable,
+  knowledgeChunksTable,
 } from "@/db/schema";
 
 // Supabase 连接池需要关闭 prepare
@@ -153,4 +154,58 @@ export const getErrorEventById = async (id: number) => {
     .where(eq(errorEventsTable.id, id));
 
   return event ?? null;
+};
+
+// 批量新增知识库切片
+export const addKnowledgeChunks = async (
+  chunks: { chatId: number; content: string; embedding: number[] }[],
+) => {
+  return await db.insert(knowledgeChunksTable).values(chunks);
+};
+
+// 删除指定对话的所有知识库切片（每个对话组在同一时间内只有有一个文件存在）
+export const deleteKnowledgeChunksByChatId = async (chatId: number) => {
+  return await db
+    .delete(knowledgeChunksTable)
+    .where(eq(knowledgeChunksTable.chatId, chatId));
+};
+
+// 混合检索：向量相似度 + 关键词搜索 (RRF 算法)
+// rrf公式：（1/k+向量排名）+（1/k+关键字排名）   --k是平滑系数，一般取60
+export const hybridSearch = async (
+  chatId: number,
+  queryText: string,
+  queryEmbedding: number[],
+) => {
+  // 注意：这里使用 raw sql 来实现高效的混合检索，这是简历里的核心亮点
+  const results = await db.execute(sql`
+    WITH vector_matches AS (
+      SELECT id, content, 1 - (embedding <=> ${JSON.stringify(queryEmbedding)}::vector) as similarity,
+             ROW_NUMBER() OVER (ORDER BY embedding <=> ${JSON.stringify(queryEmbedding)}::vector) as rank
+      FROM knowledge_chunks
+      WHERE chat_id = ${chatId}
+      LIMIT 20
+    ),
+    keyword_matches AS (
+      SELECT id, content, ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', ${queryText})) as rank_score,
+             ROW_NUMBER() OVER (ORDER BY ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', ${queryText})) DESC) as rank
+      FROM knowledge_chunks
+      WHERE chat_id = ${chatId} AND to_tsvector('simple', content) @@ plainto_tsquery('simple', ${queryText})
+      LIMIT 20
+    )
+    SELECT 
+      COALESCE(v.id, k.id) as id,
+      COALESCE(v.content, k.content) as content,
+      (COALESCE(1.0 / (v.rank + 60), 0.0) + COALESCE(1.0 / (k.rank + 60), 0.0)) as rrf_score
+    FROM vector_matches v
+    FULL OUTER JOIN keyword_matches k ON v.id = k.id
+    ORDER BY rrf_score DESC
+    LIMIT 10
+  `);
+
+  return results as unknown as {
+    id: number;
+    content: string;
+    rrf_score: number;
+  }[];
 };

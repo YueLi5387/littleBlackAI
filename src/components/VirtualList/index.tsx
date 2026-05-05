@@ -45,7 +45,6 @@ export function VirtualList<T>({
       for (let entry of entries) {
         setClientHeight(entry.contentRect.height || entry.target.clientHeight);
       }
-      console.log("ssss");
     });
     resizeObserver.observe(containerRef.current);
 

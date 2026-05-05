@@ -1,8 +1,9 @@
 "use client";
 import TextArea from "antd/es/input/TextArea";
 import styles from "./input.module.scss";
-import { useState } from "react";
-import { Button, message } from "antd";
+import { useState, useRef } from "react";
+import { Button, message, Upload, Tag } from "antd";
+import { PaperClipOutlined, CloseOutlined } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import http from "@/lib/utils/http";
@@ -16,6 +17,10 @@ type ChatInputProps = {
   sendMessage?: (payload: { text: string }) => void;
   isResponding?: boolean;
   onStop?: () => void;
+  onFileUpload?: (file: File) => Promise<void>;
+  currentFile?: string | null;
+  onRemoveFile?: () => void;
+  isUploading?: boolean;
 };
 
 export const ChatInput = memo(function ChatInput({
@@ -23,6 +28,10 @@ export const ChatInput = memo(function ChatInput({
   type,
   isResponding = false,
   onStop,
+  onFileUpload,
+  currentFile,
+  onRemoveFile,
+  isUploading,
 }: ChatInputProps) {
   const { t } = useTranslation();
   const [input, setInput] = useState("");
@@ -83,22 +92,57 @@ export const ChatInput = memo(function ChatInput({
   };
   return (
     <div className={styles.footer}>
-      <TextArea
-        value={input}
-        onChange={(e) => setInput(e.target.value)}
-        placeholder={t("common.placeholder")}
-        className={styles.textarea}
-        size="large"
-        autoSize={{ minRows: 3, maxRows: 4 }}
-        style={{ boxShadow: "none" }}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" && !e.shiftKey) {
-            e.preventDefault();
-            void toChatDetailOrSubmit();
-          }
-        }}
-      />
+      <div className={styles.inputWrapper}>
+        {currentFile && (
+          <div className={styles.fileTag}>
+            <Tag
+              color="blue"
+              closable
+              onClose={(e) => {
+                e.preventDefault();
+                onRemoveFile?.();
+              }}
+              closeIcon={<CloseOutlined />}
+            >
+              {currentFile}
+            </Tag>
+          </div>
+        )}
+        <TextArea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder={t("common.placeholder")}
+          className={styles.textarea}
+          size="large"
+          autoSize={{ minRows: 3, maxRows: 4 }}
+          style={{ boxShadow: "none" }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              void toChatDetailOrSubmit();
+            }
+          }}
+        />
+      </div>
       <div className={styles.chatBtn}>
+        {type === "chatDetail" && onFileUpload && (
+          <Upload
+            showUploadList={false}
+            beforeUpload={(file) => {
+              void onFileUpload(file);
+              return false;
+            }}
+            accept=".pdf,.docx,.md,.txt"
+          >
+            <Button
+              icon={<PaperClipOutlined />}
+              loading={isUploading}
+              disabled={!!currentFile}
+              className={styles.uploadBtn}
+              title={"一次只能上传一个文件"}
+            />
+          </Upload>
+        )}
         <Button
           className={styles.btn}
           type={isResponding && type === "chatDetail" ? "default" : "primary"}

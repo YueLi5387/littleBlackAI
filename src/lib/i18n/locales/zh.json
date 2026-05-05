@@ -54,7 +54,8 @@
     "time": "时间",
     "errorTest": "错误演示",
     "confirm": "确认",
-    "cancel": "取消"
+    "cancel": "取消",
+    "uploadSuccess": "文件解析成功，已开启知识库问答"
   },
   "chat": {
     "welcome": "你好，请问有什么可以帮你的吗？",

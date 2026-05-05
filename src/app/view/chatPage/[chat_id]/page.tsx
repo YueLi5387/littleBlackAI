@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import styles from "./chatDetail.module.scss";
 
@@ -124,7 +125,15 @@ export default function ChatPageDeatil() {
   const hasAutoAskedRef = useRef(false);
   const chatId = params.chat_id;
 
-  const { messages, sendMessage, setMessages, status, stop } = useCustomChat({
+  const {
+    messages,
+    sendMessage,
+    setMessages,
+    status,
+    stop,
+    useRAG,
+    setUseRAG,
+  } = useCustomChat({
     api: chatId ? `/api/message?chatId=${chatId}` : "/api/message",
     onFinish: (latestMessages) => {
       // 结束后，如果发现 ID 还是临时的（长度很长），说明可能是暂停了或者 ID 没同步成功，拉取一次历史记录同步 ID
@@ -247,6 +256,43 @@ export default function ChatPageDeatil() {
     [chatId, setMessages, t],
   );
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentFile, setCurrentFile] = useState<string | null>(null);
+
+  // 文件上传
+  const handleFileUpload = async (file: File) => {
+    if (!chatId) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("chatId", chatId);
+
+    try {
+      const res = (await http.post("/api/knowledge/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })) as { code: number; message: string };
+
+      if (res.code === 0) {
+        message.success(t("common.uploadSuccess"));
+
+        setCurrentFile(file.name); //设置输入框显示的名字
+        setUseRAG(true);
+      } else {
+        message.error(res.message);
+      }
+    } catch (error) {
+      message.error(t("common.uploadFailed") || "文件上传失败");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveFile = async () => {
+    setCurrentFile(null);
+    setUseRAG(false);
+    // 可选：调用后端接口清理该对话的向量数据，或者保留在库中
+  };
+
   const handleMessageDelete = useCallback(
     (aiId: string, index: number) => {
       const userMsgId = messages[index - 1]?.id;
@@ -281,6 +327,10 @@ export default function ChatPageDeatil() {
           type="chatDetail"
           isResponding={status === "streaming"}
           onStop={stop}
+          onFileUpload={handleFileUpload}
+          currentFile={currentFile}
+          onRemoveFile={handleRemoveFile}
+          isUploading={isUploading}
         />
       </div>
     </div>
