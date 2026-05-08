@@ -42,8 +42,8 @@ export async function POST(req: NextRequest) {
   //   { type: "text", text: "这是什么？" },
   // ];
   const latestUserText = latestUserMessage?.parts
-    ?.filter((part) => part.type === "text")
-    .map((part) => part.text ?? "")
+    ?.filter((part: ClientMessagePart) => part.type === "text")
+    .map((part: ClientMessagePart) => part.text ?? "")
     .join("")
     .trim();
 
