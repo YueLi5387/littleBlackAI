@@ -1,7 +1,6 @@
 ## 简介
 
-基于supabase和 ai-sdk 全栈开发的AI 对话平台，提供极速的流式交互体验，并自主实现了一套集错误回放与性能指标监控于
-一体的运维看板逻辑。
+基于supabase和 ai-sdk 全栈开发的AI 对话平台，支持文件上传与流式交互体验，并自主实现了一套集错误回放与性能指标监控于一体的运维看板逻辑。
 
 ## 特点
 
@@ -17,6 +16,11 @@
 > 如果对您对此项目有兴趣，可以点 "Star" 支持一下，十分感谢！
 
 > 传送门：[github](https://github.com/YueLi5387/littleBlackAI) 、 [gitee](https://gitee.com/duo-ke-yue-li/xiao-hei-ai)
+
+## 效果演示
+
+示例网站：http://little-black-ai-zgli.vercel.app/
+（需要开vpn使用）（网站不太稳定）
 
 ## 技术栈
 
@@ -54,14 +58,14 @@ MY_QQ_EMAIL = "自己的邮箱"
 MY_QQ_AUTH_CODE = "自己的邮箱SMTP授权码"
 
 # axios请求基地址
-AXIOS_BASE_URL = "自己的网站地址"
+AXIOS_BASE_URL = "自己的请求地址"
+
+
+# 硅基流动api秘钥
+SILICONFLOW_API_KEY = "硅基流动api秘钥"
 
 ```
 
 ```
 pnpm dev
 ```
-
-## 项目运行
-
-需要开启vpn使用网站，否则容易报错。
