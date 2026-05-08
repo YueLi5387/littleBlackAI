@@ -54,7 +54,8 @@
     "time": "Time",
     "errorTest": "Error Test",
     "confirm": "Confirm",
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "uploadSuccess": "File parsing is successful, knowledge base Q&A has been opened"
   },
   "chat": {
     "welcome": "Hello, how can I help you today?",

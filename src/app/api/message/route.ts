@@ -1,7 +1,13 @@
 import { NextRequest } from "next/server";
 import { streamText, convertToModelMessages, generateText } from "ai";
 import { createDeepSeek } from "@ai-sdk/deepseek";
-import { addMessage, updateChatTitle, getAllMessages } from "@/db";
+import {
+  addMessage,
+  updateChatTitle,
+  getAllMessages,
+  hybridSearch,
+} from "@/db";
+import { getQueryEmbedding, rerankChunks } from "@/lib/utils/ragUtils";
 
 const DEEPSEEK_API_KEY = process.env.DEEPSEEK_API_KEY;
 const deepSeek = createDeepSeek({
@@ -22,8 +28,8 @@ type ClientMessage = {
 export async function POST(req: NextRequest) {
   const chatIdParam = req.nextUrl.searchParams.get("chatId");
   const chatId = chatIdParam ? Number(chatIdParam) : null;
-  const payload = (await req.json()) as { messages?: ClientMessage[] }; //前端useChat钩子在发送请求时，会自动把当前页面的所有历史对话内容打包放在 messages 数组里传给后端
-  const messages = Array.isArray(payload.messages) ? payload.messages : [];
+  const payload = await req.json();
+  const { messages = [], useRAG = false } = payload;
 
   const latestUserMessage = [...messages].reverse().find((message) => {
     return message.role === "user";
@@ -70,15 +76,62 @@ export async function POST(req: NextRequest) {
       })();
     }
   }
+  // 系统提示词
+  let systemPrompt =
+    "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，会说多国语言，能根据用户的提问调整对应的回答语言，是人类的好帮手。";
+
+  // 如果启用了 RAG 模式
+  if (useRAG && chatId && latestUserText) {
+    try {
+      // 1. 获取用户提问向量
+      const queryEmbedding = await getQueryEmbedding(latestUserText);
+
+      // 2. 混合检索 (向量 + 关键词)
+      const rawChunks = await hybridSearch(
+        Number(chatId),
+        latestUserText,
+        queryEmbedding,
+      );
+
+      // 3. Rerank 重排
+      const chunkContents = rawChunks.map((c) => c.content);
+      const rerankedContents = await rerankChunks(
+        latestUserText,
+        chunkContents,
+      );
+
+      if (rerankedContents.length > 0) {
+        systemPrompt = `你是智能助手陈小黑。当前用户已上传文档。
+你的回答规则：
+1. 必须【严格结合】下方提供的【参考资料】来回答。
+2. 如果参考资料中没有相关信息，请直接回答：“抱歉，在您上传的文档中没有找到相关内容。”
+3. 严禁使用你自带的预训练知识来回答文档之外的内容。
+
+【参考资料开始】
+${rerankedContents.join("\n\n")}
+【参考资料结束】`;
+      } else {
+        systemPrompt += `\n\n注意：当前用户已上传文档，但针对该问题未检索到匹配的段落。请告知用户文档中没有相关内容。`;
+      }
+    } catch (error) {
+      console.error("RAG 链路发生错误:", error);
+    }
+  }
+
+  // 关键：如果是 RAG 模式且检索到了内容，我们构造一个新的消息数组
+  // 将参考资料通过 System 角色直接“喂”给模型，并保持用户问题在最后
+  let finalMessages = convertToModelMessages(messages);
+
+  if (useRAG && chatId && latestUserText) {
+    // 强制重置上下文，只给系统提示词和当前问题，防止历史干扰
+    finalMessages = [{ role: "user" as const, content: latestUserText }];
+  }
 
   const result = streamText({
     model: deepSeek("deepseek-chat"), //使用deepseek-chat模型
-    messages: convertToModelMessages(messages), //转换成ai厂商需要的格式
-    system:
-      "你是智能助手陈小黑，你很聪明，会耐心回答用户的问题，会说多国语言，能根据用户的提问调整对应的回答语言，是人类的好帮手。", //系统提示词
+    messages: finalMessages,
+    system: systemPrompt,
   });
-  console.dir("result---->", result);
-  console.log("textStream 到底是什么---->", result.textStream);
 
   // 自定义 SSE 流实现
   const encoder = new TextEncoder();

@@ -6,6 +6,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from "react";
 import styles from "./chatDetail.module.scss";
 
@@ -21,6 +22,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import throttle from "lodash/throttle";
 import { useTranslation } from "react-i18next";
+import { VirtualList } from "@/components/VirtualList/index";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = {
@@ -123,7 +125,15 @@ export default function ChatPageDeatil() {
   const hasAutoAskedRef = useRef(false);
   const chatId = params.chat_id;
 
-  const { messages, sendMessage, setMessages, status, stop } = useCustomChat({
+  const {
+    messages,
+    sendMessage,
+    setMessages,
+    status,
+    stop,
+    useRAG,
+    setUseRAG,
+  } = useCustomChat({
     api: chatId ? `/api/message?chatId=${chatId}` : "/api/message",
     onFinish: (latestMessages) => {
       // 结束后，如果发现 ID 还是临时的（长度很长），说明可能是暂停了或者 ID 没同步成功，拉取一次历史记录同步 ID
@@ -215,11 +225,6 @@ export default function ChatPageDeatil() {
     }
   }, [chatId, router, searchParams, sendMessage, context]);
 
-  const latestMsgRef = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    latestMsgRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
-
   // 删除一组msg信息
   const handleDeleteAssistantReply = useCallback(
     throttle(
@@ -251,6 +256,54 @@ export default function ChatPageDeatil() {
     [chatId, setMessages, t],
   );
 
+  const [isUploading, setIsUploading] = useState(false);
+  const [currentFile, setCurrentFile] = useState<string | null>(null);
+
+  // 新增：进入页面时检查 URL 参数，如果带了 file，说明是从首页上传跳转过来的
+  useEffect(() => {
+    const fileName = searchParams.get("file");
+    if (fileName) {
+      setCurrentFile(decodeURIComponent(fileName));
+      setUseRAG(true);
+    }
+  }, []);
+
+  // 文件上传
+  const handleFileUpload = async (file: File) => {
+    if (!chatId) return;
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("chatId", chatId);
+
+    try {
+      const res = (await http.post("/api/knowledge/upload", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })) as { code: number; message: string };
+
+      if (res.code === 0) {
+        message.success(
+          t("common.uploadSuccess") || "文件解析成功，已开启知识库问答",
+        );
+
+        setCurrentFile(file.name); //设置输入框显示的名字
+        setUseRAG(true);
+      } else {
+        message.error(res.message);
+      }
+    } catch (error) {
+      message.error(t("common.uploadFailed") || "文件上传失败");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleRemoveFile = async () => {
+    setCurrentFile(null);
+    setUseRAG(false);
+    // 可选：调用后端接口清理该对话的向量数据，或者保留在库中
+  };
+
   const handleMessageDelete = useCallback(
     (aiId: string, index: number) => {
       const userMsgId = messages[index - 1]?.id;
@@ -259,34 +312,36 @@ export default function ChatPageDeatil() {
     [messages, handleDeleteAssistantReply],
   );
 
-  const messageItems = useMemo(() => {
-    return (messages as ChatMessage[]).map((message, index) => (
-      <MessageItem
-        key={message.id}
-        message={message}
-        isStreaming={
-          status === "streaming" &&
-          index === messages.length - 1 &&
-          message.role === "assistant"
-        }
-        onDelete={(aiId) => handleMessageDelete(aiId, index)}
-      />
-    ));
-  }, [messages, status, handleMessageDelete]);
-
   return (
     <div className={styles.chatDetailPage}>
-      <div className={styles.content}>
-        {messageItems}
-        {/* 让最新消息一直显示在底部 */}
-        <div ref={latestMsgRef}></div>
-      </div>
+      <VirtualList
+        listData={messages}
+        estimatedItemHeight={39} // 调大预估高度，减少冗余 DOM 渲染
+        autoScrollToBottom={true}
+        className={styles.content}
+        renderItem={(message, index) => (
+          <MessageItem
+            key={(message as ChatMessage).id}
+            message={message as ChatMessage}
+            isStreaming={
+              status === "streaming" &&
+              index === messages.length - 1 &&
+              (message as ChatMessage).role === "assistant"
+            }
+            onDelete={(aiId) => handleMessageDelete(aiId, index)}
+          />
+        )}
+      />
       <div className={styles.footer}>
         <ChatInput
           sendMessage={sendMessage}
           type="chatDetail"
           isResponding={status === "streaming"}
           onStop={stop}
+          onFileUpload={handleFileUpload}
+          currentFile={currentFile}
+          onRemoveFile={handleRemoveFile}
+          isUploading={isUploading}
         />
       </div>
     </div>

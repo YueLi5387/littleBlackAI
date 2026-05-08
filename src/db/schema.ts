@@ -7,6 +7,7 @@ import {
   timestamp,
   varchar,
   jsonb,
+  vector,
 } from "drizzle-orm/pg-core";
 
 export const chatsTable = pgTable(
@@ -42,6 +43,21 @@ export const errorEventsTable = pgTable("error_events", {
   events: jsonb("events").notNull(),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
+
+// 知识库切片表 (RAG)
+export const knowledgeChunksTable = pgTable(
+  "knowledge_chunks",
+  {
+    id: serial("id").primaryKey(),
+    chatId: integer("chat_id")
+      .notNull()
+      .references(() => chatsTable.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    embedding: vector("embedding", { dimensions: 1024 }), // BGE-M3 维度是 1024
+    createdAt: timestamp("created_at").defaultNow().notNull(),
+  },
+  (table) => [index("chunks_chat_id_idx").on(table.chatId)],
+);
 
 // 性能监控存储表
 export const performanceEventsTable = pgTable("performance_events", {

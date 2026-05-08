@@ -1,3 +1,4 @@
+// 封装SSE的实现逻辑
 import { useState, useCallback, useRef } from "react";
 
 export type ChatPart = { type: "text"; text: string };
@@ -16,15 +17,18 @@ interface UseCustomChatOptions {
 export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<"idle" | "streaming">("idle");
+  const [useRAG, setUseRAG] = useState(false); // 新增 RAG 状态
   const abortControllerRef = useRef<AbortController | null>(null); ///判断是否正在输出
   const messagesRef = useRef<ChatMessage[]>([]);
   const statusRef = useRef<"idle" | "streaming">("idle");
   const onFinishRef = useRef(onFinish);
+  const useRAGRef = useRef(useRAG); // 使用 ref 同步 useRAG 状态，避免 sendMessage 闭包问题
 
-  // 同步 messages 到 ref，方便在异步回调中获取最新值
+  // 同步状态到 ref，确保异步回调或闭包内能获取最新值
   messagesRef.current = messages;
   statusRef.current = status;
   onFinishRef.current = onFinish;
+  useRAGRef.current = useRAG;
 
   const stop = useCallback(() => {
     if (abortControllerRef.current) {
@@ -64,7 +68,10 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
         const response = await fetch(api, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ messages: newMessages }),
+          body: JSON.stringify({
+            messages: newMessages,
+            useRAG: useRAGRef.current, // 使用 ref 获取最新的 RAG 开启状态
+          }),
           signal: controller.signal,
         });
 
@@ -158,5 +165,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
     sendMessage,
     status,
     stop,
+    useRAG,
+    setUseRAG,
   };
 }
