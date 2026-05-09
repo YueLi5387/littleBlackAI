@@ -317,7 +317,7 @@ export default function ChatPageDeatil() {
     <div className={styles.chatDetailPage}>
       <VirtualList
         listData={messages}
-        estimatedItemHeight={39} // 调大预估高度，减少冗余 DOM 渲染
+        estimatedItemHeight={64} // 调大预估高度，减少冗余 DOM 渲染
         autoScrollToBottom={true}
         className={styles.content}
         renderItem={(message, index) => (
