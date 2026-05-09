@@ -1,6 +1,8 @@
 // 封装RAG相关逻辑，包含文档转文字，文档切块，文字转向量，重排
 import mammoth from "mammoth";
 const pdf = require("pdf-parse");
+import { useTranslation } from "react-i18next";
+const { t } = useTranslation();
 
 /**
  * 文件解析工具：将不同格式的文件转为纯文本
@@ -34,10 +36,10 @@ export async function parseFileToText(
       return fileBuffer.toString("utf-8");
     }
 
-    throw new Error(`不支持的文件类型: ${fileType}`);
+    throw new Error(`${t("common.UnsupportedFileTypeError")}: ${fileType}`);
   } catch (error) {
-    console.error("文件解析失败:", error);
-    throw new Error("文件内容读取失败，请检查文件是否加密或损坏");
+    console.error(t("common.uploadFail"), error);
+    throw new Error(t("common.failReadUpload"));
   }
 }
 

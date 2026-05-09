@@ -55,7 +55,13 @@
     "errorTest": "错误演示",
     "confirm": "确认",
     "cancel": "取消",
-    "uploadSuccess": "文件解析成功，已开启知识库问答"
+    "uploadSuccess": "文件解析成功，已开启知识库问答",
+    "china": "中文",
+    "English": "英语",
+    "Jap": "日语",
+    "UnsupportedFileTypeError": "不支持的文件类型",
+    "failReadUpload": "文件内容读取失败，请检查文件是否加密或损坏",
+    "uploadFail": "文件解析失败"
   },
   "chat": {
     "welcome": "你好，请问有什么可以帮你的吗？",

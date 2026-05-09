@@ -55,7 +55,13 @@
     "errorTest": "Error Test",
     "confirm": "Confirm",
     "cancel": "Cancel",
-    "uploadSuccess": "File parsing is successful, knowledge base Q&A has been opened"
+    "uploadSuccess": "File parsing is successful, knowledge base Q&A has been opened",
+    "china": "Chinese",
+    "English": "English",
+    "Jap": "Japanese",
+    "UnsupportedFileTypeError": "Unsupported file types",
+    "failReadUpload": "Failed to read the file content, please check whether the file is encrypted or damaged",
+    "uploadFail": "File parsing failed"
   },
   "chat": {
     "welcome": "Hello, how can I help you today?",

@@ -55,7 +55,13 @@
     "errorTest": "エラーテストを実行",
     "confirm": "確認",
     "cancel": "キャンセル",
-    "uploadSuccess": "ファイル解析が成功しました。知識ベースQ&Aが開かれました"
+    "uploadSuccess": "ファイル解析が成功しました。知識ベースQ&Aが開かれました",
+    "china": "中国語",
+    "English": "英語",
+    "Jap": "日本語",
+    "UnsupportedFileTypeError": "不サポートされたファイルタイプ",
+    "failReadUpload": "ファイル内容の読み込みに失敗しました。ファイルが暗号化されたか、破損されている可能性があります。",
+    "uploadFail": "ファイル解析に失敗しました"
   },
   "chat": {
     "welcome": "こんにちは、何かお手伝いできることはありますか？",

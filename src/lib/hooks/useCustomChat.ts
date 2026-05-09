@@ -6,7 +6,6 @@ export type ChatMessage = {
   id: string;
   role: "user" | "assistant" | "system";
   parts: ChatPart[];
-  content?: string;
 };
 
 interface UseCustomChatOptions {
@@ -17,10 +16,10 @@ interface UseCustomChatOptions {
 export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [status, setStatus] = useState<"idle" | "streaming">("idle");
-  const [useRAG, setUseRAG] = useState(false); // 新增 RAG 状态
+  const [useRAG, setUseRAG] = useState(false); // 是否使用 RAG 功能
   const abortControllerRef = useRef<AbortController | null>(null); ///判断是否正在输出
   const messagesRef = useRef<ChatMessage[]>([]);
-  const statusRef = useRef<"idle" | "streaming">("idle");
+  const statusRef = useRef<"idle" | "streaming">("idle"); // 代表是否正在输出
   const onFinishRef = useRef(onFinish);
   const useRAGRef = useRef(useRAG); // 使用 ref 同步 useRAG 状态，避免 sendMessage 闭包问题
 
@@ -44,26 +43,28 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
       // 如果正在输出，则不允许再次发送
       if (statusRef.current === "streaming") return;
 
+      // 先预设好用户发送的信息
       const userMsg: ChatMessage = {
         id: Date.now().toString(), //先把id设置为当前时间戳，等输出完成后再更新
         role: "user",
         parts: [{ type: "text", text }],
       };
-
+      // 先预设好ai发送的信息
       const assistantMsg: ChatMessage = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        parts: [{ type: "text", text: "" }],
+        parts: [{ type: "text", text: "请稍等..." }],
       };
-
+      //  一次性将两条消息放入数组，先占位，ai输出的时候再更新msg信息
       const newMessages = [...messagesRef.current, userMsg, assistantMsg];
+
       setMessages(newMessages);
       statusRef.current = "streaming";
       setStatus("streaming");
-
       const controller = new AbortController();
       abortControllerRef.current = controller;
 
+      // --获取后端传来的回答--
       try {
         const response = await fetch(api, {
           method: "POST",
@@ -83,11 +84,28 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
         const decoder = new TextDecoder(); //二进制->文本
         let buffer = ""; //用来存ai返回的完整文本，存数据库的
 
+        //ai准备输出了，把先前设置的请稍等占位符去掉
+        setMessages((prev) => {
+          const last = prev[prev.length - 1];
+          if (last && last.role === "assistant") {
+            const newLast = {
+              ...last,
+              parts: [{ type: "text", text: "" }],
+            };
+            return [...prev.slice(0, -1), newLast];
+          }
+          return prev;
+        });
+
         while (true) {
           const { done, value } = await reader.read(); //读取每个切片流
           if (done) break;
 
-          buffer += decoder.decode(value, { stream: true });
+          buffer += decoder.decode(value, { stream: true }); //通过stream将多余的二进制给留在下一次的buffer里，等下一次读取时再处理，此时的buffer存的是完整的二进制，就可以正常解析成字符串，不会有乱码的问题
+          //但是，解析的字符串可能不完整，比如
+          // data: {"type":"text-delta","delta":"你好"}
+          // data: {"type":"text-delta","delta":"我正在
+          // 它少了“}，不能被转成JSON对象，所以需要等下一次读取时再处理
           const lines = buffer.split("\n");
           buffer = lines.pop() || "";
 

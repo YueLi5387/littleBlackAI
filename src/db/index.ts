@@ -171,7 +171,7 @@ export const deleteKnowledgeChunksByChatId = async (chatId: number) => {
 };
 
 // 混合检索：向量相似度 + 关键词搜索 (RRF 算法)
-// rrf公式：（1/k+向量排名）+（1/k+关键字排名）   --k是平滑系数，一般取60
+// rrf公式：（1/(k+向量排名)）+（1/(k+关键字排名)）   --k是平滑系数，一般取60
 export const hybridSearch = async (
   chatId: number,
   queryText: string,

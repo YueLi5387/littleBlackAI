@@ -1,3 +1,4 @@
+// 文件转文字--》分块----》转向量----》存数据库
 import { NextRequest, NextResponse } from "next/server";
 import { parseFileToText, recursiveSplit } from "@/lib/utils/ragUtils";
 import { addKnowledgeChunks, deleteKnowledgeChunksByChatId } from "@/db";

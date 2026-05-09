@@ -29,6 +29,9 @@ export function VirtualList<T>({
   const containerRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
   const [clientHeight, setClientHeight] = useState(0); //可视区域的真实高度
+  const isAtBottom = useRef(true); // 是否处于底部
+  const prevListLength = useRef(listData.length); // 记录上次列表长度
+
   // 初始化positions数组，预估每个item的高度和位置
   const [positions, setPositions] = useState(() =>
     listData.map((_, index) => ({
@@ -107,18 +110,24 @@ export function VirtualList<T>({
   const totalHeight =
     positions.length > 0 ? positions[positions.length - 1].bottom : 0;
 
-  // 锚定底部
-  // 只要 totalHeight 变大（说明内容被撑开了），就尝试滚动到底部
-  // 使用 rAF 优化：确保滚动操作在浏览器下一帧渲染前执行，避免高频更新导致的卡顿
+  // 锚定底部逻辑优化
   useEffect(() => {
-    if (autoScrollToBottom && containerRef.current && totalHeight > 0) {
+    if (autoScrollToBottom && containerRef.current) {
       const container = containerRef.current;
-      const rafId = requestAnimationFrame(() => {
-        container.scrollTop = container.scrollHeight;
-      });
-      return () => cancelAnimationFrame(rafId);
+      const isNewMessage = listData.length > prevListLength.current;
+      prevListLength.current = listData.length;
+
+      // 只有在以下情况滚动到底部：
+      // 1. 列表长度增加了（新消息到来）
+      // 2. 当前已经处于底部（粘性滚动，处理流式输出或图片加载）
+      if (isNewMessage || isAtBottom.current) {
+        const rafId = requestAnimationFrame(() => {
+          container.scrollTop = container.scrollHeight;
+        });
+        return () => cancelAnimationFrame(rafId);
+      }
     }
-  }, [totalHeight, autoScrollToBottom]);
+  }, [totalHeight, listData.length, autoScrollToBottom]);
 
   const pendingUpdates = useRef<Record<number, number>>({}); //暂时储存高度，等屏幕刷新时批量更新
   const rafId = useRef<number | null>(null);
@@ -180,13 +189,25 @@ export function VirtualList<T>({
       style={{
         height: containerHeight,
         overflowY: "auto",
+        overflowX: "hidden", // 修复 bug 2: 禁用横向滚动
         position: "relative",
       }}
-      onScroll={(e) => setScrollTop(e.currentTarget.scrollTop)}
+      onScroll={(e) => {
+        const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+        setScrollTop(scrollTop);
+        // 修复 bug 1: 判断是否处于底部（留出 5px 余量，防止亚像素计算导致的判断失效）
+        isAtBottom.current = scrollHeight - scrollTop - clientHeight < 5;
+      }}
     >
-      {/* 占位盒子 */}
+      {/* 占位盒子 - 修复 bug 3: 移除 width: 100% 避免潜在的抖动和溢出 */}
       <div
-        style={{ height: totalHeight, position: "absolute", width: "100%" }}
+        style={{
+          height: totalHeight,
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+        }}
       />
       {/* 详细渲染列表 */}
       <div style={{ transform: `translate3d(0, ${offset}px, 0)` }}>

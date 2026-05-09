@@ -46,6 +46,7 @@ export const ChatInput = memo(function ChatInput({
     type === "chatHome" ? localFile?.name : propsCurrentFile;
   const isUploading = type === "chatHome" ? localIsUploading : propsIsUploading;
 
+  // 移除文件
   const handleRemoveFile = () => {
     if (type === "chatHome") {
       setLocalFile(null);
@@ -54,6 +55,7 @@ export const ChatInput = memo(function ChatInput({
     }
   };
 
+  // 跳转详情页
   const toChatDetail = async (question: string) => {
     if (isCreatingChat) return;
     setIsCreatingChat(true);
@@ -103,17 +105,16 @@ export const ChatInput = memo(function ChatInput({
   };
 
   const toChatDetailOrSubmit = async () => {
-    if (isResponding && type === "chatDetail") {
-      onStop?.();
-      return;
-    }
-
     const question = input.trim();
     if (!question) return;
 
     if (type === "chatHome") {
       await toChatDetail(question);
     } else {
+      if (isResponding && type === "chatDetail") {
+        onStop?.();
+        return;
+      }
       sendMessage?.({ text: question });
       setInput("");
     }

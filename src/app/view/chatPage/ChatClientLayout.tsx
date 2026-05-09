@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect, useCallback, useMemo } from "react";
+import React, { useState, useCallback, useMemo } from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -7,7 +7,6 @@ import {
 } from "@ant-design/icons";
 import { Button, Layout, Menu, theme, Select } from "antd";
 import styles from "./view.module.scss";
-import http from "@/lib/utils/http";
 import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { createClient } from "@/lib/supabase/client";
@@ -24,11 +23,6 @@ type ChatItem = {
   createdAt?: string;
 };
 
-type ChatListResponse = {
-  code: number;
-  data: ChatItem[];
-};
-
 export const Ctx = React.createContext<{
   chat: ChatItem[];
   setChat: React.Dispatch<React.SetStateAction<ChatItem[]>>;
@@ -39,7 +33,10 @@ interface ChatClientLayoutProps {
   initialChats: ChatItem[];
   isAdmin: boolean;
 }
-
+/**
+@initialChats: 初始聊天列表
+@isAdmin: 是否为管理员
+**/
 export default function ChatClientLayout({
   children,
   initialChats,
@@ -184,16 +181,18 @@ export default function ChatClientLayout({
           />
           <h1 className={styles.title}>{headerTitle}</h1>
           <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
+            {/* 语言选择 */}
             <Select
               value={i18n.language.split("-")[0]}
               style={{ width: 100 }}
               onChange={(value) => i18n.changeLanguage(value)}
               size="small"
             >
-              <Option value="zh">中文</Option>
-              <Option value="en">English</Option>
-              <Option value="jp">日本語</Option>
+              <Option value="zh">{t("common.china")}</Option>
+              <Option value="en">{t("common.English")}</Option>
+              <Option value="jp">{t("common.Jap")}</Option>
             </Select>
+            {/* 错误演示按钮 */}
             {isAdmin && (
               <div style={{ display: "flex", gap: "10px" }}>
                 <Button
@@ -214,6 +213,7 @@ export default function ChatClientLayout({
                 </Button>
               </div>
             )}
+            {/* 退出登录 */}
             <Button type="primary" ghost onClick={handleLogout}>
               {t("common.logout")}
             </Button>

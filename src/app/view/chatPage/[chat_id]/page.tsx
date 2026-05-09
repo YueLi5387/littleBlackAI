@@ -61,6 +61,7 @@ type DeleteMessageResponse = {
 const MemoizedReactMarkdown = memo(ReactMarkdown);
 const REMARK_PLUGINS = [remarkGfm];
 
+// 信息条组件
 const MessageItem = memo(
   ({
     message,
@@ -83,10 +84,12 @@ const MessageItem = memo(
             {message.parts.map((part, pIndex) =>
               part.type === "text" ? (
                 isStreaming ? (
+                  // 输出过程中用<pre>保留原文格式
                   <pre key={pIndex} className={styles.streamingText}>
                     {part.text ?? ""}
                   </pre>
                 ) : (
+                  // 输出完毕后转markdown
                   <div key={pIndex} className={styles.markdownBody}>
                     <MemoizedReactMarkdown remarkPlugins={REMARK_PLUGINS}>
                       {part.text ?? ""}
@@ -118,8 +121,8 @@ MessageItem.displayName = "MessageItem";
 
 export default function ChatPageDeatil() {
   const { t } = useTranslation();
-  const params = useParams<{ chat_id: string }>();
-  const searchParams = useSearchParams();
+  const params = useParams<{ chat_id: string }>(); //拿动态路由里的参数  ---params参数
+  const searchParams = useSearchParams(); //query参数
   const router = useRouter();
   const context = useContext(Ctx);
   const hasAutoAskedRef = useRef(false);
@@ -148,7 +151,6 @@ export default function ChatPageDeatil() {
               const history = res.data.map((msg) => ({
                 id: String(msg.id),
                 role: msg.role as "user" | "assistant" | "system",
-                content: msg.content,
                 parts: [{ type: "text" as const, text: msg.content }],
               }));
               // 只有当数据库返回的消息数量大于等于当前消息数量时才同步，避免覆盖掉正在输出的内容
@@ -192,7 +194,6 @@ export default function ChatPageDeatil() {
           const history = res.data.map((msg) => ({
             id: String(msg.id),
             role: msg.role as "user" | "assistant" | "system",
-            content: msg.content,
             parts: [{ type: "text" as const, text: msg.content }],
           }));
           // 仅在本地仍为空时写入，避免覆盖流式中的 assistant 消息
@@ -282,9 +283,7 @@ export default function ChatPageDeatil() {
       })) as { code: number; message: string };
 
       if (res.code === 0) {
-        message.success(
-          t("common.uploadSuccess") || "文件解析成功，已开启知识库问答",
-        );
+        message.success(t("common.uploadSuccess"));
 
         setCurrentFile(file.name); //设置输入框显示的名字
         setUseRAG(true);
@@ -292,18 +291,20 @@ export default function ChatPageDeatil() {
         message.error(res.message);
       }
     } catch (error) {
-      message.error(t("common.uploadFailed") || "文件上传失败");
+      message.error(t("common.uploadFailed"));
     } finally {
       setIsUploading(false);
     }
   };
 
+  // 删除文件
   const handleRemoveFile = async () => {
     setCurrentFile(null);
     setUseRAG(false);
     // 可选：调用后端接口清理该对话的向量数据，或者保留在库中
   };
 
+  // 删除信息
   const handleMessageDelete = useCallback(
     (aiId: string, index: number) => {
       const userMsgId = messages[index - 1]?.id;

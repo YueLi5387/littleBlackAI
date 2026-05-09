@@ -19,11 +19,6 @@ type ClientMessagePart = {
   text: string;
 };
 
-type ClientMessage = {
-  role: "user" | "assistant" | "system";
-  parts: ClientMessagePart[];
-};
-
 // 生成聊天信息
 export async function POST(req: NextRequest) {
   const chatIdParam = req.nextUrl.searchParams.get("chatId");
@@ -142,7 +137,7 @@ ${rerankedContents.join("\n\n")}
         for await (const delta of result.textStream) {
           fullText += delta;
           const data = JSON.stringify({ type: "text-delta", delta });
-          controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+          controller.enqueue(encoder.encode(`data: ${data}\n\n`)); //往流里推入一块数据（二进制）
         }
       } catch (error) {
         console.error("Stream error:", error);
