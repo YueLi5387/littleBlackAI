@@ -88,7 +88,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
         setMessages((prev) => {
           const last = prev[prev.length - 1];
           if (last && last.role === "assistant") {
-            const newLast = {
+            const newLast: ChatMessage = {
               ...last,
               parts: [{ type: "text", text: "" }],
             };
@@ -120,7 +120,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
                   setMessages((prev) => {
                     const last = prev[prev.length - 1];
                     if (last && last.role === "assistant") {
-                      const newLast = {
+                      const newLast: ChatMessage = {
                         ...last,
                         parts: [
                           {
