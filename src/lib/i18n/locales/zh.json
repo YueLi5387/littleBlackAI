@@ -61,7 +61,10 @@
     "Jap": "日语",
     "UnsupportedFileTypeError": "不支持的文件类型",
     "failReadUpload": "文件内容读取失败，请检查文件是否加密或损坏",
-    "uploadFail": "文件解析失败"
+    "uploadFail": "文件解析失败",
+    "initSupervisePageFailed": "初始化监控页面失败",
+    "getErrorEventsFailed": "获取错误列表失败",
+    "onlyUploadFileOne": "一次只能上传一个文件"
   },
   "chat": {
     "welcome": "你好，请问有什么可以帮你的吗？",

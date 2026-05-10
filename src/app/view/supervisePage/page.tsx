@@ -91,7 +91,7 @@ export default function SupervisePage() {
         //获取数据
         fetchData();
       } catch (error) {
-        console.error("初始化监控页面失败:", error);
+        console.error(t("common.initSupervisePageFailed"), error);
         router.replace(ROUTES.chatHome);
       }
     };
@@ -114,7 +114,7 @@ export default function SupervisePage() {
         setErrorEvents(res.data);
       }
     } catch (error) {
-      console.error("获取错误列表失败:", error);
+      console.error(t("common.getErrorEventsFailed"), error);
     } finally {
       setLoading(false);
     }
@@ -133,7 +133,7 @@ export default function SupervisePage() {
         message.error(t("common.getPerfFailed"));
       }
     } catch (error) {
-      console.error("获取性能列表失败:", error);
+      console.error(t("common.getPerfFailed"), error);
       message.error(t("common.perfConnectFailed"));
     }
   };
@@ -333,6 +333,7 @@ export default function SupervisePage() {
                   <div className={styles.sectionTitle}>
                     {t("common.errorStack")}
                   </div>
+                  {/* 错误信息 */}
                   <div className={styles.errorInfo}>
                     <div
                       style={{
@@ -359,6 +360,7 @@ export default function SupervisePage() {
                     {errorInfo?.stack}
                   </div>
                 </div>
+                {/* 错误回放 */}
                 <div className={styles.detailCard}>
                   <div className={styles.sectionTitle}>
                     {t("common.behaviorReplay")}

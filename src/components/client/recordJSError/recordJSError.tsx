@@ -8,11 +8,13 @@ import { usePathname } from "next/navigation";
 export default function Monitoring() {
   const pathname = usePathname(); //获取url路径
 
+  // 监听性能变化
   useEffect(() => {
     // 每次路径变化时记录性能
     reportPerformance();
   }, [pathname]);
 
+  // 录制错误事件
   useEffect(() => {
     // 开始录制
     const stopFn = record({
@@ -31,6 +33,7 @@ export default function Monitoring() {
       reportEvents(event.reason);
     };
 
+    //监听JS错误、资源加载错误（普通代码报错、图片 / JS/CSS 加载失败）
     window.addEventListener("error", handleError);
     // 监听未捕获的 Promise 报错
     window.addEventListener("unhandledrejection", handleRejection);

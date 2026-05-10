@@ -1,6 +1,7 @@
+// 用来存储操作内容，和上报错误内容
 import axios from "axios";
 
-// 最简单纯粹的事件数组
+// 存报错事件的数组
 let events = [];
 
 export const recordEvents = (event) => {

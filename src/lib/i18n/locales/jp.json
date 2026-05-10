@@ -61,7 +61,10 @@
     "Jap": "日本語",
     "UnsupportedFileTypeError": "不サポートされたファイルタイプ",
     "failReadUpload": "ファイル内容の読み込みに失敗しました。ファイルが暗号化されたか、破損されている可能性があります。",
-    "uploadFail": "ファイル解析に失敗しました"
+    "uploadFail": "ファイル解析に失敗しました",
+    "initSupervisePageFailed": "監視ページの初期化に失敗しました",
+    "getErrorEventsFailed": "エラーリストの取得に失敗しました。",
+    "onlyUploadFileOne": "一度に1つのファイルのみをアップロードできます"
   },
   "chat": {
     "welcome": "こんにちは、何かお手伝いできることはありますか？",

@@ -172,7 +172,7 @@ export const ChatInput = memo(function ChatInput({
             loading={isUploading}
             disabled={!!currentFileName}
             className={styles.uploadBtn}
-            title={"一次只能上传一个文件"}
+            title={t("common.onlyUploadFileOne")}
           />
         </Upload>
         <Button

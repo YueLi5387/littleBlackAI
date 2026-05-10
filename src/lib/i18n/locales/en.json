@@ -61,7 +61,10 @@
     "Jap": "Japanese",
     "UnsupportedFileTypeError": "Unsupported file types",
     "failReadUpload": "Failed to read the file content, please check whether the file is encrypted or damaged",
-    "uploadFail": "File parsing failed"
+    "uploadFail": "File parsing failed",
+    "initSupervisePageFailed": "Failed to initialize monitoring page",
+    "getErrorEventsFailed": "Failed to get error list",
+    "onlyUploadFileOne": "Only one file can be uploaded at a time"
   },
   "chat": {
     "welcome": "Hello, how can I help you today?",

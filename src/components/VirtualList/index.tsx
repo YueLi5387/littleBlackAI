@@ -13,10 +13,19 @@ export interface VirtualListProps<T> {
   estimatedItemHeight: number; // 初始预估高度
   containerHeight?: number | string;
   bufferScale?: number; // 缓冲区比例，建议聊天场景设为 1 或更高
-  autoScrollToBottom?: boolean; // AI 场景核心：是否锚定底部
+  autoScrollToBottom?: boolean; // 是否锚定底部
   className?: string;
 }
-
+/**
+ * 虚拟列表组件
+ * @param listData 列表数据
+ * @param renderItem 渲染函数，接收 item 和 index 作为参数，返回 ReactNode
+ * @param estimatedItemHeight 初始预估高度
+ * @param containerHeight 容器高度，默认 100%
+ * @param bufferScale 缓冲区比例，默认是1
+ * @param autoScrollToBottom 是否自动锚定底部，默认 false
+ * @param className 自定义类名
+ */
 export function VirtualList<T>({
   listData,
   renderItem,
@@ -41,7 +50,7 @@ export function VirtualList<T>({
       bottom: (index + 1) * estimatedItemHeight,
     })),
   );
-  //初始化， 监听滚动容器的高度，一旦容器变高 / 变矮，立刻更新 clientHeight！（其实就是根据浏览器窗口大小决定clientHeight大小）
+  //初始化， 监听滚动容器的高度，一旦容器变高 / 变矮，立刻更新 clientHeight。
   useEffect(() => {
     if (!containerRef.current) return;
     const resizeObserver = new ResizeObserver((entries) => {
@@ -58,6 +67,7 @@ export function VirtualList<T>({
   useEffect(() => {
     setPositions((prev) => {
       if (prev.length === listData.length) return prev;
+      // 如果是新增消息，就给新增的消息设置一个预估值数组，像一开始的position一样，接着给它追加到positions数组后面
       if (listData.length > prev.length) {
         const lastBottom = prev.length > 0 ? prev[prev.length - 1].bottom : 0;
         const addCount = listData.length - prev.length;
@@ -72,6 +82,8 @@ export function VirtualList<T>({
         });
         return [...prev, ...newItems];
       }
+      // 如果是删除消息，就直接切割原数组就好了
+
       return prev.slice(0, listData.length);
     });
   }, [listData.length]);
@@ -96,7 +108,7 @@ export function VirtualList<T>({
   const visibleCount = Math.ceil(clientHeight / estimatedItemHeight); //总共能放多少个item
 
   // 计算渲染列表的起始index（上下各多渲染几个item，防止快速滚动白屏）
-  const bufferCount = visibleCount; // 默认缓冲一屏的数量
+  const bufferCount = visibleCount; // 默认缓冲一屏(也就是一页item)的数量
   const start = Math.max(0, startIndex - bufferCount);
   const end = Math.min(
     listData.length,
@@ -127,10 +139,10 @@ export function VirtualList<T>({
         return () => cancelAnimationFrame(rafId);
       }
     }
-  }, [totalHeight, listData.length, autoScrollToBottom]);
+  }, [totalHeight, autoScrollToBottom]);
 
   const pendingUpdates = useRef<Record<number, number>>({}); //暂时储存高度，等屏幕刷新时批量更新
-  const rafId = useRef<number | null>(null);
+  const rafId = useRef<number | null>(null); // 用于取消 rAF 回调的引用
 
   // 【ResizeObserver】
   // 解决图片加载、流式输出导致的高度突变。一旦 item 尺寸变化，立即修正 positions
@@ -143,7 +155,7 @@ export function VirtualList<T>({
 
     rafId.current = requestAnimationFrame(() => {
       rafId.current = null;
-      const updates = { ...pendingUpdates.current };
+      const updates = { ...pendingUpdates.current }; //更新的item块
       pendingUpdates.current = {};
 
       setPositions((prev) => {
@@ -189,17 +201,17 @@ export function VirtualList<T>({
       style={{
         height: containerHeight,
         overflowY: "auto",
-        overflowX: "hidden", // 修复 bug 2: 禁用横向滚动
+        overflowX: "hidden", //  禁用横向滚动
         position: "relative",
       }}
       onScroll={(e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
         setScrollTop(scrollTop);
-        // 修复 bug 1: 判断是否处于底部（留出 5px 余量，防止亚像素计算导致的判断失效）
+        //  判断是否处于底部（留出 5px 余量，防止亚像素计算导致的判断失效）
         isAtBottom.current = scrollHeight - scrollTop - clientHeight < 5;
       }}
     >
-      {/* 占位盒子 - 修复 bug 3: 移除 width: 100% 避免潜在的抖动和溢出 */}
+      {/* 占位盒子 - 移除 width: 100% 避免潜在的抖动和溢出 */}
       <div
         style={{
           height: totalHeight,

@@ -172,7 +172,7 @@ function LoginContent() {
                   { type: "email", message: t("common.emailfalse") },
                 ]}
               >
-                <Input />
+                <Input className="rr-mask" />
               </Form.Item>
 
               <Form.Item
@@ -219,7 +219,7 @@ function LoginContent() {
                   { type: "email", message: t("common.emailfalse") },
                 ]}
               >
-                <Input />
+                <Input className="rr-mask" />
               </Form.Item>
 
               <Form.Item
