@@ -8,7 +8,7 @@
   .content {
     width: 100%;
     flex: 1 1 auto;
-    padding: 20px;
+    padding: 24px 20px;
     width: 100%;
     height: 100%; // 必须有明确高度
     overflow-y: auto !important;
@@ -19,9 +19,9 @@
   /* 单条消息容器 */
   .message {
     display: flex;
-    max-width: 80%;
+    max-width: min(80%, 680px);
     align-items: flex-end;
-    margin-bottom: 12px;
+    margin-bottom: 16px;
   }
 
   /* AI 在左，用户在右 */
@@ -43,10 +43,10 @@
   /* 气泡样式 */
   .bubble {
     padding: 10px 14px;
-    border-radius: 12px;
+    border-radius: var(--radius-md);
     line-height: 1.4;
     font-size: 14px;
-    box-shadow: 0 2px 6px rgba(16, 24, 40, 0.06);
+    box-shadow: 0 2px 8px var(--color-shadow);
     word-break: break-word;
     max-width: 640px;
   }
@@ -86,9 +86,10 @@
 
     :global(pre) {
       overflow-x: auto;
-      padding: 10px 12px;
+      padding: 12px 16px;
       border-radius: 8px;
-      background: rgba(0, 0, 0, 0.04);
+      background: #f8f9fa;
+      border: 1px solid rgba(0, 0, 0, 0.06);
       margin: 8px 0;
     }
 
@@ -105,23 +106,35 @@
       padding-left: 20px;
     }
   }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
   .streamingText {
     overflow-x: auto;
     padding: 10px 12px;
     border-radius: 8px;
     margin: 8px 0;
+    &::after {
+      content: "▊";
+      display: inline-block;
+      animation: blink 1s step-end infinite;
+      margin-left: 2px;
+      color: var(--color-primary);
+      font-size: 14px;
+    }
   }
 
   .ai .bubble {
-    background: #ffffff;
-    color: #222;
-    border: 1px solid rgba(16, 24, 40, 0.04);
+    background: var(--color-bg-ai);
+    color: var(--color-text-primary);
+    border: 1px solid var(--color-border-light);
     border-top-left-radius: 4px;
   }
 
   .user .bubble {
-    background: #e6f7ff; /* 轻盈的蓝色 */
-    color: #003a8c;
+    background: var(--color-primary-light);
+    color: var(--color-primary-text);
     border-top-right-radius: 4px;
   }
 
@@ -137,9 +150,37 @@
   }
 
   /* 小屏幕适配 */
-  @media (max-width: 768px) {
+  @media (max-width: 640px) {
+    .message {
+      max-width: 92%;
+    }
+    .content {
+      padding: 12px 10px;
+    }
     .bubble {
       font-size: 13px;
+      padding: 8px 12px;
+    }
+    .footer {
+      padding: 8px 12px;
+    }
+  }
+
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .message {
+      max-width: 85%;
+    }
+  }
+
+  @media (min-width: 1200px) {
+    .message {
+      max-width: 75%;
+    }
+    .bubble {
+      max-width: 720px;
+    }
+    .content {
+      padding: 28px 24px;
     }
   }
 }

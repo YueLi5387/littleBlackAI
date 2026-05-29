@@ -1,78 +1,103 @@
 .layout {
   width: 100vw;
   height: 100vh;
+  display: flex;
+
   .left {
     position: relative;
     transition: all 0.3s ease-in-out;
     height: 100%;
     overflow-y: auto;
-    .cover {
-      position: absolute;
-      top: 0;
+    z-index: 100;
+
+    @media (max-width: 768px) {
+      position: fixed;
       left: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0, 21, 41, 0.5);
-      backdrop-filter: blur(6px); //css的滤镜
-      z-index: 2;
-      color: #fff;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      font-size: 24px;
-      font-weight: 600;
-    }
-    .logo {
-      position: absolute;
-      top: 16px;
-      left: 16px;
-      z-index: 3;
-    }
-    .menu {
-      position: absolute;
-      bottom: 16px;
-      left: 16px;
+      top: 0;
+      bottom: 0;
+      transform: translateX(-100%);
+
+      &.mobileVisible {
+        transform: translateX(0);
+      }
     }
   }
+
   .right {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+
     .header {
       display: flex;
       align-items: center;
-      padding: 0 16px;
+      padding: 0 12px;
       background: #fff;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
       position: relative;
       z-index: 9;
+      height: 64px;
+      flex-shrink: 0;
 
       .title {
         flex: 1;
         text-align: center;
         margin: 0;
-        font-size: 20px;
+        font-size: clamp(14px, 4vw, 18px);
         font-weight: 500;
         color: #262626;
         overflow: hidden;
         text-overflow: ellipsis;
         white-space: nowrap;
+        padding: 0 8px;
       }
 
-      :global(.ant-btn) {
-        transition: all 0.3s;
+      .headerActions {
+        display: flex;
+        align-items: center;
 
-        &:hover {
-          background-color: rgba(24, 144, 255, 0.1);
-          color: #1890ff;
+        .desktopOnly {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+
+          @media (max-width: 768px) {
+            display: none;
+          }
+        }
+
+        .mobileOnly {
+          display: none;
+          @media (max-width: 768px) {
+            display: flex;
+            align-items: center;
+          }
         }
       }
     }
 
     .content {
+      flex: 1;
       background: url("../../../../public/【哲风壁纸】卡通-小王子-星星.png")
         no-repeat center / cover;
       overflow: hidden;
       background-color: rgba(255, 255, 255, 0.8);
       background-blend-mode: overlay;
-      border-radius: 8px;
     }
+  }
+}
+
+.mobileMask {
+  display: none;
+  @media (max-width: 768px) {
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.45);
+    z-index: 90;
   }
 }

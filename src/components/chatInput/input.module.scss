@@ -1,15 +1,15 @@
 .footer {
   width: 100%;
-  max-width: 900px;
+  max-width: min(800px, 96vw);
   height: auto;
   padding: 8px 12px;
-  border-radius: 10px;
+  border-radius: var(--radius-md);
   display: flex;
   gap: 12px;
   align-items: flex-end;
-  background: rgba(255, 255, 255, 0.9);
-  box-shadow: 0 6px 18px rgba(16, 24, 40, 0.06);
-  border: 1px solid rgba(16, 24, 40, 0.04);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.08);
 
   .inputWrapper {
     flex: 1 1 auto;
@@ -52,6 +52,22 @@
       padding: 6px 14px;
       height: 36px;
       border-radius: 8px;
+    }
+  }
+
+  @media (max-width: 640px) {
+    max-width: 98vw;
+    padding: 6px 10px;
+    border-radius: 8px;
+
+    .textarea {
+      padding: 6px 8px;
+      font-size: 14px;
+    }
+
+    .btn {
+      padding: 4px 10px;
+      height: 32px;
     }
   }
 }

@@ -4,8 +4,12 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   PlusCircleOutlined,
+  MoreOutlined,
+  MonitorOutlined,
+  LogoutOutlined,
+  BugOutlined,
 } from "@ant-design/icons";
-import { Button, Layout, Menu, theme, Select } from "antd";
+import { Button, Layout, Menu, theme, Select, Dropdown } from "antd";
 import styles from "./view.module.scss";
 import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
@@ -44,10 +48,11 @@ export default function ChatClientLayout({
 }: ChatClientLayoutProps) {
   const { t, i18n } = useTranslation();
   const [collapsed, setCollapsed] = useState(false);
+  const [mobileVisible, setMobileVisible] = useState(false);
   const router = useRouter();
   const params = useParams<{ chat_id: string }>();
   const {
-    token: { colorBgContainer, borderRadiusLG },
+    token: { colorBgContainer },
   } = theme.useToken();
   const supabase = createClient();
   const [chat, setChat] = useState<ChatItem[]>(initialChats);
@@ -99,6 +104,52 @@ export default function ChatClientLayout({
     [supabase.auth, router],
   );
 
+  const moreMenuItems = useMemo(() => {
+    const items = [];
+    items.push({
+      key: "language",
+      label: (
+        <Select
+          value={i18n.language.split("-")[0]}
+          style={{ width: "100%" }}
+          onChange={(value) => i18n.changeLanguage(value)}
+          size="small"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <Option value="zh">{t("common.china")}</Option>
+          <Option value="en">{t("common.English")}</Option>
+          <Option value="jp">{t("common.Jap")}</Option>
+        </Select>
+      ),
+    });
+    if (isAdmin) {
+      items.push({
+        key: "errorTest",
+        icon: <BugOutlined />,
+        label: t("common.errorTest"),
+        onClick: () => {
+          console.log(
+            "错误演示，控制台打印---",
+            (window as any).ooojijsahicxb非.name,
+          );
+        },
+      });
+      items.push({
+        key: "supervise",
+        icon: <MonitorOutlined />,
+        label: t("common.monitor"),
+        onClick: handleGoSupervise,
+      });
+    }
+    items.push({
+      key: "logout",
+      icon: <LogoutOutlined />,
+      label: t("common.logout"),
+      onClick: handleLogout,
+    });
+    return { items };
+  }, [isAdmin, handleGoSupervise, handleLogout, t, i18n]);
+
   const menuItems = useMemo(() => {
     return chat.map((item) => ({
       key: String(item.id),
@@ -139,17 +190,28 @@ export default function ChatClientLayout({
 
   return (
     <Layout className={styles.layout}>
+      {/* 移动端遮罩 */}
+      {mobileVisible && (
+        <div
+          className={styles.mobileMask}
+          onClick={() => setMobileVisible(false)}
+        />
+      )}
       <Sider
         trigger={null}
         collapsible
         collapsed={collapsed}
-        className={styles.left}
+        className={`${styles.left} ${mobileVisible ? styles.mobileVisible : ""}`}
+        width={260}
       >
         <div style={{ padding: "16px", textAlign: "center" }}>
           <Button
             type="primary"
             icon={<PlusCircleOutlined />}
-            onClick={handleNewChat}
+            onClick={() => {
+              handleNewChat();
+              setMobileVisible(false);
+            }}
             block
             style={{ marginBottom: "16px" }}
           >
@@ -160,7 +222,10 @@ export default function ChatClientLayout({
           theme="dark"
           mode="inline"
           selectedKeys={params.chat_id ? [params.chat_id] : []}
-          onClick={handleMenuClick}
+          onClick={(e) => {
+            handleMenuClick(e);
+            setMobileVisible(false);
+          }}
           items={menuItems}
         />
       </Sider>
@@ -172,58 +237,83 @@ export default function ChatClientLayout({
           <Button
             type="text"
             icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-            onClick={() => setCollapsed(!collapsed)}
+            onClick={() => {
+              if (window.innerWidth <= 768) {
+                setMobileVisible(!mobileVisible);
+              } else {
+                setCollapsed(!collapsed);
+              }
+            }}
             style={{
               fontSize: "16px",
-              width: 64,
+              width: 54,
               height: 64,
             }}
           />
           <h1 className={styles.title}>{headerTitle}</h1>
-          <div style={{ display: "flex", gap: "10px", alignItems: "center" }}>
-            {/* 语言选择 */}
-            <Select
-              value={i18n.language.split("-")[0]}
-              style={{ width: 100 }}
-              onChange={(value) => i18n.changeLanguage(value)}
-              size="small"
-            >
-              <Option value="zh">{t("common.china")}</Option>
-              <Option value="en">{t("common.English")}</Option>
-              <Option value="jp">{t("common.Jap")}</Option>
-            </Select>
-            {/* 错误演示按钮 */}
-            {isAdmin && (
-              <div style={{ display: "flex", gap: "10px" }}>
+          <div className={styles.headerActions}>
+            {/* PC 端：完全平铺，无更多按钮 */}
+            <div className={styles.desktopOnly}>
+              <Select
+                value={i18n.language.split("-")[0]}
+                style={{ width: 100 }}
+                onChange={(value) => i18n.changeLanguage(value)}
+                size="small"
+              >
+                <Option value="zh">{t("common.china")}</Option>
+                <Option value="en">{t("common.English")}</Option>
+                <Option value="jp">{t("common.Jap")}</Option>
+              </Select>
+              {isAdmin && (
+                <>
+                  <Button
+                    type="primary"
+                    ghost
+                    danger
+                    size="small"
+                    onClick={() => {
+                      console.log(
+                        "错误演示，控制台打印---",
+                        (window as any).ooojijsahicxb非.name,
+                      );
+                    }}
+                  >
+                    {t("common.errorTest")}
+                  </Button>
+                  <Button
+                    type="primary"
+                    ghost
+                    size="small"
+                    onClick={handleGoSupervise}
+                  >
+                    {t("common.monitor")}
+                  </Button>
+                </>
+              )}
+              <Button type="primary" ghost size="small" onClick={handleLogout}>
+                {t("common.logout")}
+              </Button>
+            </div>
+
+            {/* 移动端：仅展示更多按钮面板 */}
+            <div className={styles.mobileOnly}>
+              <Dropdown
+                menu={moreMenuItems}
+                trigger={["click"]}
+                placement="bottomRight"
+              >
                 <Button
-                  type="primary"
-                  ghost
-                  onClick={() => {
-                    console.log(
-                      "错误演示，控制台打印---",
-                      (window as any).ooojijsahicxb非.name,
-                    );
-                  }}
-                  danger
-                >
-                  {t("common.errorTest")}
-                </Button>
-                <Button type="primary" ghost onClick={handleGoSupervise}>
-                  {t("common.monitor")}
-                </Button>
-              </div>
-            )}
-            {/* 退出登录 */}
-            <Button type="primary" ghost onClick={handleLogout}>
-              {t("common.logout")}
-            </Button>
+                  type="text"
+                  icon={<MoreOutlined style={{ fontSize: "20px" }} />}
+                />
+              </Dropdown>
+            </div>
           </div>
         </Header>
         <Content
           style={{
-            margin: "12px 10px 0px ",
+            margin: "12px 12px 0",
             minHeight: 280,
-            borderRadius: borderRadiusLG,
           }}
           className={styles.content}
         >
