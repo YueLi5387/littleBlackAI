@@ -63,9 +63,14 @@ export default function SupervisePage() {
   const [isAdmin, setIsAdmin] = useState(false);
   const [mode, setMode] = useState<"error" | "performance">("error");
   const [errorEvents, setErrorEvents] = useState<ErrorEvent[]>([]);
+  const [errorPage, setErrorPage] = useState(1);
+  const [errorHasMore, setErrorHasMore] = useState(true);
+  const [errorLoadingMore, setErrorLoadingMore] = useState(false);
   const [performanceEvents, setPerformanceEvents] = useState<
     PerformanceEvent[]
   >([]);
+  const [perfPage, setPerfPage] = useState(1);
+  const [perfTotal, setPerfTotal] = useState(0);
   const [selectedEvent, setSelectedEvent] = useState<ErrorEvent | null>(null);
   const [isErrorListExpanded, setIsErrorListExpanded] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
@@ -99,36 +104,47 @@ export default function SupervisePage() {
   }, [router]);
 
   const fetchData = () => {
-    fetchErrorEvents();
-    fetchPerformanceEvents();
+    fetchErrorEvents(1);
+    fetchPerformanceEvents(1);
   };
 
-  // 拉取所有错误日志
-  const fetchErrorEvents = async () => {
+  // 拉取错误日志
+  const fetchErrorEvents = async (page: number, append = false) => {
     try {
-      const res = (await http.get("/api/errorEvents")) as {
+      const res = (await http.get(
+        `/api/errorEvents?page=${page}&pageSize=8`,
+      )) as {
         code: number;
         data: ErrorEvent[];
+        hasMore: boolean;
       };
       if (res.code === 0) {
-        setErrorEvents(res.data);
+        setErrorEvents((prev) => (append ? [...prev, ...res.data] : res.data));
+        setErrorHasMore(res.hasMore);
+        setErrorPage(page);
       }
     } catch (error) {
       console.error(t("common.getErrorEventsFailed"), error);
     } finally {
-      setLoading(false);
+      if (!append) setLoading(false);
+      setErrorLoadingMore(false);
     }
   };
 
   // 拉取性能日志
-  const fetchPerformanceEvents = async () => {
+  const fetchPerformanceEvents = async (page: number) => {
     try {
-      const res = (await http.get("/api/performanceEvents")) as {
+      const res = (await http.get(
+        `/api/performanceEvents?page=${page}&pageSize=10`,
+      )) as {
         code: number;
         data: PerformanceEvent[];
+        total: number;
       };
       if (res.code === 0) {
         setPerformanceEvents(res.data);
+        setPerfTotal(res.total);
+        setPerfPage(page);
       } else {
         message.error(t("common.getPerfFailed"));
       }
@@ -264,7 +280,17 @@ export default function SupervisePage() {
         </div>
 
         {isErrorListExpanded && (
-          <div className={styles.eventList}>
+          <div
+            className={styles.eventList}
+            onScroll={(e) => {
+              if (errorLoadingMore || !errorHasMore) return;
+              const el = e.currentTarget;
+              if (el.scrollHeight - el.scrollTop - el.clientHeight < 50) {
+                setErrorLoadingMore(true);
+                fetchErrorEvents(errorPage + 1, true);
+              }
+            }}
+          >
             {errorEvents.map((item) => {
               const itemError =
                 typeof item.error === "string"
@@ -288,6 +314,24 @@ export default function SupervisePage() {
                 </div>
               );
             })}
+            {errorEvents.length > 0 && (errorLoadingMore || !errorHasMore) && (
+              <div
+                style={{
+                  padding: "16px",
+                  textAlign: "center",
+                  color: "#8c8c8c",
+                  fontSize: 12,
+                  opacity: errorLoadingMore ? 1 : 0.6,
+                  transition: "opacity 0.3s ease",
+                }}
+              >
+                {errorLoadingMore ? (
+                  <Spin size="small" />
+                ) : (
+                  <span>—— 没有更多了 ——</span>
+                )}
+              </div>
+            )}
             {errorEvents.length === 0 && !loading && (
               <Empty
                 image={Empty.PRESENTED_IMAGE_SIMPLE}
@@ -424,7 +468,13 @@ export default function SupervisePage() {
                   <List
                     itemLayout="horizontal"
                     dataSource={performanceEvents}
-                    pagination={{ pageSize: 10 }}
+                    pagination={{
+                      current: perfPage,
+                      total: perfTotal,
+                      pageSize: 10,
+                      onChange: (page) => fetchPerformanceEvents(page),
+                      showSizeChanger: false,
+                    }}
                     renderItem={(item) => (
                       <List.Item>
                         <List.Item.Meta

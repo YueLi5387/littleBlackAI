@@ -1,5 +1,11 @@
 "use client";
-import React, { useState, useCallback, useMemo } from "react";
+import React, {
+  useState,
+  useCallback,
+  useMemo,
+  useRef,
+  useEffect,
+} from "react";
 import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -9,11 +15,12 @@ import {
   LogoutOutlined,
   BugOutlined,
 } from "@ant-design/icons";
-import { Button, Layout, Menu, theme, Select, Dropdown } from "antd";
+import { Button, Layout, Menu, theme, Select, Dropdown, Spin } from "antd";
 import styles from "./view.module.scss";
 import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import { createClient } from "@/lib/supabase/client";
+import http from "@/lib/utils/http";
 import dayjs from "dayjs";
 import throttle from "lodash/throttle";
 import { useTranslation } from "react-i18next";
@@ -57,6 +64,38 @@ export default function ChatClientLayout({
   const supabase = createClient();
   const [chat, setChat] = useState<ChatItem[]>(initialChats);
   const [isAdmin, setIsAdmin] = useState(initialIsAdmin);
+  const [chatPage, setChatPage] = useState(1);
+  const [chatHasMore, setChatHasMore] = useState(true);
+  const [chatLoadingMore, setChatLoadingMore] = useState(false);
+  const siderRef = useRef<HTMLDivElement>(null);
+
+  // 侧边栏滚动加载
+  const handleSiderScroll = useCallback(async () => {
+    if (chatLoadingMore || !chatHasMore || !siderRef.current) return;
+    const { scrollHeight, scrollTop, clientHeight } = siderRef.current;
+    if (scrollHeight - scrollTop - clientHeight < 50) {
+      setChatLoadingMore(true);
+      try {
+        const res = (await http.get(
+          `/api/chat?page=${chatPage + 1}&pageSize=17`,
+        )) as { code: number; data: ChatItem[]; hasMore: boolean };
+        if (res.code === 0) {
+          setChat((prev) => [...prev, ...res.data]);
+          setChatHasMore(res.hasMore);
+          setChatPage((p) => p + 1);
+        }
+      } finally {
+        setChatLoadingMore(false);
+      }
+    }
+  }, [chatPage, chatLoadingMore, chatHasMore]);
+
+  // 服务端 initialChats 更新时重置分页
+  useEffect(() => {
+    setChat(initialChats);
+    setChatPage(1);
+    setChatHasMore(initialChats.length === 17);
+  }, [initialChats]);
 
   // 获取当前对话标题
   const currentChat = chat.find((item) => String(item.id) === params.chat_id);
@@ -203,6 +242,8 @@ export default function ChatClientLayout({
         collapsed={collapsed}
         className={`${styles.left} ${mobileVisible ? styles.mobileVisible : ""}`}
         width={260}
+        ref={siderRef}
+        onScroll={handleSiderScroll}
       >
         <div style={{ padding: "16px", textAlign: "center" }}>
           <Button
@@ -228,6 +269,29 @@ export default function ChatClientLayout({
           }}
           items={menuItems}
         />
+        {!collapsed &&
+          chat.length >= 17 &&
+          (chatLoadingMore || !chatHasMore) && (
+            <div
+              style={{
+                padding: "16px",
+                textAlign: "center",
+                color: "rgba(255,255,255,0.35)",
+                fontSize: 12,
+                opacity: chatLoadingMore ? 1 : 0.6,
+                transition: "opacity 0.3s ease",
+              }}
+            >
+              {chatLoadingMore ? (
+                <Spin
+                  size="small"
+                  style={{ color: "rgba(255,255,255,0.45)" }}
+                />
+              ) : (
+                <span>—— 没有更多了 ——</span>
+              )}
+            </div>
+          )}
       </Sider>
       <Layout className={styles.right}>
         <Header

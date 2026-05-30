@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
 }
 
 // 获取所有错误事件 (仅管理员)
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
     const {
@@ -38,8 +38,14 @@ export async function GET() {
       );
     }
 
-    const events = await getAllErrorEvents();
-    return NextResponse.json({ code: 0, data: events }, { status: 200 });
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const pageSize = parseInt(searchParams.get("pageSize") || "8");
+    const events = await getAllErrorEvents(page, pageSize);
+    return NextResponse.json(
+      { code: 0, data: events, hasMore: events.length === pageSize },
+      { status: 200 },
+    );
   } catch (e) {
     const message = e instanceof Error ? e.message : "获取错误列表失败";
     return NextResponse.json({ code: 1, message }, { status: 500 });

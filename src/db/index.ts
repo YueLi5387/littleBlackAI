@@ -31,13 +31,15 @@ export const addChat = async (userId: string, title: string, model: string) => {
   return chat;
 };
 
-// 查询所有聊天组
-export const getAllChats = async (userId: string) => {
+// 查询聊天组
+export const getAllChats = async (userId: string, page = 1, pageSize = 17) => {
   return await db
     .select()
     .from(chatsTable)
     .where(eq(chatsTable.userId, userId))
-    .orderBy(desc(chatsTable.createdAt));
+    .orderBy(desc(chatsTable.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 };
 
 // 新增一条信息
@@ -115,12 +117,14 @@ export const addErrorEvent = async (error: any, events: any) => {
   return event;
 };
 
-// 获取所有错误日志
-export const getAllErrorEvents = async () => {
+// 获取错误日志
+export const getAllErrorEvents = async (page = 1, pageSize = 8) => {
   return await db
     .select()
     .from(errorEventsTable)
-    .orderBy(desc(errorEventsTable.createdAt));
+    .orderBy(desc(errorEventsTable.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
 };
 
 // 新增性能日志
@@ -140,12 +144,21 @@ export const addPerformanceEvent = async (
   return event;
 };
 
-// 获取所有性能日志
-export const getAllPerformanceEvents = async () => {
+// 获取性能日志
+export const getAllPerformanceEvents = async (page = 1, pageSize = 10) => {
   return await db
     .select()
     .from(performanceEventsTable)
-    .orderBy(desc(performanceEventsTable.createdAt));
+    .orderBy(desc(performanceEventsTable.createdAt))
+    .limit(pageSize)
+    .offset((page - 1) * pageSize);
+};
+
+export const countPerformanceEvents = async () => {
+  const [result] = await db
+    .select({ count: sql<number>`count(*)` })
+    .from(performanceEventsTable);
+  return Number(result.count);
 };
 
 // 根据 ID 获取错误事件

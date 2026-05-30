@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { addChat, getAllChats } from "@/db";
 // 获取对话组
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
     const supabase = await createClient();
     const {
@@ -14,9 +14,12 @@ export async function GET() {
       return NextResponse.json({ code: 1, message: "未登录" }, { status: 401 });
     }
 
-    const chats = await getAllChats(user.id);
+    const { searchParams } = new URL(req.url);
+    const page = parseInt(searchParams.get("page") || "1");
+    const pageSize = parseInt(searchParams.get("pageSize") || "17");
+    const chats = await getAllChats(user.id, page, pageSize);
     return NextResponse.json(
-      { code: 0, data: chats },
+      { code: 0, data: chats, hasMore: chats.length === pageSize },
       {
         status: 200,
       },

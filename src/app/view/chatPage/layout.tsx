@@ -18,7 +18,7 @@ export default async function ChatLayout({
     } = await supabase.auth.getUser();
 
     if (user) {
-      initialChats = await getAllChats(user.id);
+      initialChats = await getAllChats(user.id, 1, 17);
       isAdmin = user.email === process.env.MY_QQ_EMAIL;
     }
   } catch (error) {
