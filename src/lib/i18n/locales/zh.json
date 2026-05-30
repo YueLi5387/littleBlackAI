@@ -64,13 +64,18 @@
     "uploadFail": "文件解析失败",
     "initSupervisePageFailed": "初始化监控页面失败",
     "getErrorEventsFailed": "获取错误列表失败",
-    "onlyUploadFileOne": "一次只能上传一个文件"
+    "onlyUploadFileOne": "一次只能上传一个文件",
+    "noMore": "—— 没有更多了 ——",
+    "replayIncomplete": "回放数据不完整（缺少页面初始化信息）",
+    "uploadFile": "上传文件",
+    "uploadFailed": "文件上传失败"
   },
   "chat": {
     "welcome": "你好，请问有什么可以帮你的吗？",
     "deleteConfirm": "确认删除这条 AI 回答吗？",
     "deleteSuccess": "已删除这条 AI 回答",
     "createFailed": "创建聊天组失败",
-    "deleteFailed": "删除回答失败，请稍后重试"
+    "deleteFailed": "删除回答失败，请稍后重试",
+    "removeFileFirst": "请先移除当前文件再上传新文件"
   }
 }

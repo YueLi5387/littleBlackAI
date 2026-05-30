@@ -288,7 +288,7 @@ export default function ChatClientLayout({
                   style={{ color: "rgba(255,255,255,0.45)" }}
                 />
               ) : (
-                <span>—— 没有更多了 ——</span>
+                <span>{t("common.noMore")}</span>
               )}
             </div>
           )}

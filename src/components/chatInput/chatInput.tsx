@@ -162,7 +162,7 @@ export const ChatInput = memo(function ChatInput({
           beforeUpload={(file) => {
             if (currentFileName) {
               message.warning(
-                t("chat.removeFileFirst") || "请先移除当前文件再上传新文件",
+                t("chat.removeFileFirst"),
               );
               return false;
             }

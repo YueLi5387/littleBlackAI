@@ -64,13 +64,18 @@
     "uploadFail": "ファイル解析に失敗しました",
     "initSupervisePageFailed": "監視ページの初期化に失敗しました",
     "getErrorEventsFailed": "エラーリストの取得に失敗しました。",
-    "onlyUploadFileOne": "一度に1つのファイルのみをアップロードできます"
+    "onlyUploadFileOne": "一度に1つのファイルのみをアップロードできます",
+    "noMore": "—— これ以上ありません ——",
+    "replayIncomplete": "リプレイデータが不完全です（初期化情報が不足しています）",
+    "uploadFile": "ファイルをアップロード",
+    "uploadFailed": "ファイルのアップロードに失敗しました"
   },
   "chat": {
     "welcome": "こんにちは、何かお手伝いできることはありますか？",
     "deleteConfirm": "このAIの回答を削除してもよろしいですか？",
     "deleteSuccess": "AIの回答を削除しました",
     "createFailed": "チャットグループの作成に失敗しました",
-    "deleteFailed": "回答の削除に失敗しました。後でもう一度お試しください。"
+    "deleteFailed": "回答の削除に失敗しました。後でもう一度お試しください。",
+    "removeFileFirst": "現在のファイルを削除してから新しいファイルをアップロードしてください"
   }
 }

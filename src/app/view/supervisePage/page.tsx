@@ -192,7 +192,7 @@ export default function SupervisePage() {
         initPlayer();
       } else {
         replayerContainer.current.innerHTML =
-          '<div style="color: #999; text-align: center; padding: 20px;">回放数据不完整（缺少页面初始化信息）</div>';
+          `<div style="color: #999; text-align: center; padding: 20px;">${t("common.replayIncomplete")}</div>`;
       }
     }
 
@@ -328,7 +328,7 @@ export default function SupervisePage() {
                 {errorLoadingMore ? (
                   <Spin size="small" />
                 ) : (
-                  <span>—— 没有更多了 ——</span>
+                  <span>{t("common.noMore")}</span>
                 )}
               </div>
             )}

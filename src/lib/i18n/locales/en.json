@@ -64,13 +64,18 @@
     "uploadFail": "File parsing failed",
     "initSupervisePageFailed": "Failed to initialize monitoring page",
     "getErrorEventsFailed": "Failed to get error list",
-    "onlyUploadFileOne": "Only one file can be uploaded at a time"
+    "onlyUploadFileOne": "Only one file can be uploaded at a time",
+    "noMore": "—— No more ——",
+    "replayIncomplete": "Replay data is incomplete (missing initialization info)",
+    "uploadFile": "Upload File",
+    "uploadFailed": "File upload failed"
   },
   "chat": {
     "welcome": "Hello, how can I help you today?",
     "deleteConfirm": "Are you sure you want to delete this AI response?",
     "deleteSuccess": "AI response deleted",
     "createFailed": "Failed to create chat group",
-    "deleteFailed": "Failed to delete response, please try again later"
+    "deleteFailed": "Failed to delete response, please try again later",
+    "removeFileFirst": "Please remove the current file before uploading a new one"
   }
 }
