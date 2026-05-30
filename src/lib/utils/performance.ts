@@ -1,8 +1,36 @@
 import http from "./http";
+import localforage from "localforage";
+
+const perfQueue = localforage.createInstance({ name: "perfQueue" });
+
+async function flushPendingPerf() {
+  const keys = await perfQueue.keys();
+  if (keys.length === 0) return;
+  for (const key of keys) {
+    const data = await perfQueue.getItem(key) as any;
+    try {
+      await http.post("/api/performanceEvents", data);
+      await perfQueue.removeItem(key);
+    } catch {
+      // 失败项保留，下次再试
+    }
+  }
+}
+
+async function savePerfToQueue(data: any) {
+  try {
+    await perfQueue.setItem(String(Date.now()), data);
+  } catch (e) {
+    console.error("localForage 写入失败", e);
+  }
+}
 
 // 上报页面性能指标
 export const reportPerformance = async () => {
   if (typeof window === "undefined") return;
+
+  // 先清积压
+  flushPendingPerf();
 
   // 页面加载完成后收集性能数据上报后端
   const sendMetrics = async () => {
@@ -35,7 +63,8 @@ export const reportPerformance = async () => {
           metrics,
         });
       } catch (e) {
-        console.warn("Performance report failed", e);
+        console.warn("Performance report failed, saved to queue", e);
+        savePerfToQueue({ path: window.location.pathname, metrics });
       }
     }
   };
