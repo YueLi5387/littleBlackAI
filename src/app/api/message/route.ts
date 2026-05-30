@@ -43,9 +43,10 @@ export async function POST(req: NextRequest) {
     .trim();
 
   let userMessageId: string | undefined;
+  const latestFileName = (latestUserMessage as any)?.fileName;
 
   if (chatId && Number.isFinite(chatId) && latestUserText) {
-    const userMsg = await addMessage(chatId, "user", latestUserText); //把用户发送的信息存数据库
+    const userMsg = await addMessage(chatId, "user", latestUserText, latestFileName); //把用户发送的信息存数据库
     userMessageId = String(userMsg.id);
 
     // 异步生成标题，不阻塞聊天响应
@@ -96,17 +97,27 @@ export async function POST(req: NextRequest) {
       );
 
       if (rerankedContents.length > 0) {
-        systemPrompt = `你是智能助手陈小黑。当前用户已上传文档。
-你的回答规则：
-1. 必须【严格结合】下方提供的【参考资料】来回答。
-2. 如果参考资料中没有相关信息，请直接回答：“抱歉，在您上传的文档中没有找到相关内容。”
-3. 严禁使用你自带的预训练知识来回答文档之外的内容。
-
-【参考资料开始】
-${rerankedContents.join("\n\n")}
-【参考资料结束】`;
+        var refText = rerankedContents
+          .map(function (c, i) {
+            return "[" + (i + 1) + "] " + c;
+          })
+          .join("\n\n");
+        systemPrompt = [
+          "你是智能助手陈小黑，聪明且乐于助人。用户刚刚上传或更新了参考文档，请务必以本次提供的【参考资料】为准。",
+          "",
+          "【参考资料】",
+          refText,
+          "",
+          "回答规则：",
+          "1. 必须优先结合上述最新的参考资料来回答问题。",
+          "2. 如果资料内容与之前的对话历史有冲突，请以最新的参考资料为准。",
+          "3. 可以在回答中提及：‘根据您当前上传的文档...’",
+        ].join("\n");
       } else {
-        systemPrompt += `\n\n注意：当前用户已上传文档，但针对该问题未检索到匹配的段落。请告知用户文档中没有相关内容。`;
+        systemPrompt = [
+          "你是智能助手陈小黑，聪明且乐于助人。当前用户虽然开启了文档模式，但在最新文档中没有找到与提问相关的匹配内容。",
+          "请礼貌地告知用户：‘在当前文档中未找到相关信息’，然后尝试根据你的通用知识回答。",
+        ].join("\n");
       }
     } catch (error) {
       console.error("RAG 链路发生错误:", error);
@@ -116,11 +127,6 @@ ${rerankedContents.join("\n\n")}
   // 关键：如果是 RAG 模式且检索到了内容，我们构造一个新的消息数组
   // 将参考资料通过 System 角色直接“喂”给模型，并保持用户问题在最后
   let finalMessages = convertToModelMessages(messages);
-
-  if (useRAG && chatId && latestUserText) {
-    // 强制重置上下文，只给系统提示词和当前问题，防止历史干扰
-    finalMessages = [{ role: "user" as const, content: latestUserText }];
-  }
 
   const result = streamText({
     model: deepSeek("deepseek-chat"), //使用deepseek-chat模型

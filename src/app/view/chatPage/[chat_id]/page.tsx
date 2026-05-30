@@ -30,6 +30,7 @@ type ChatMessage = {
   role: string;
   parts: ChatPart[];
   content?: string;
+  fileName?: string;
 };
 
 type ChatListItem = {
@@ -46,6 +47,7 @@ type ChatHistoryItem = {
   id: string | number;
   role: string;
   content: string;
+  fileName?: string;
 };
 
 type ChatHistoryResponse = {
@@ -81,6 +83,11 @@ const MessageItem = memo(
       >
         <div className={styles.bubbleWrap}>
           <div className={styles.bubble}>
+            {message.fileName && message.role === "user" && (
+              <div className={styles.fileTag}>
+                {message.fileName}
+              </div>
+            )}
             {message.parts.map((part, pIndex) =>
               part.type === "text" ? (
                 isStreaming ? (
@@ -152,6 +159,7 @@ export default function ChatPageDeatil() {
                 id: String(msg.id),
                 role: msg.role as "user" | "assistant" | "system",
                 parts: [{ type: "text" as const, text: msg.content }],
+                fileName: (msg as any).fileName,
               }));
               // 只有当数据库返回的消息数量大于等于当前消息数量时才同步，避免覆盖掉正在输出的内容
               setMessages((prev) =>
@@ -195,6 +203,7 @@ export default function ChatPageDeatil() {
             id: String(msg.id),
             role: msg.role as "user" | "assistant" | "system",
             parts: [{ type: "text" as const, text: msg.content }],
+            fileName: (msg as any).fileName,
           }));
           // 仅在本地仍为空时写入，避免覆盖流式中的 assistant 消息
           setMessages((prev) => (prev.length === 0 ? history : prev));
@@ -208,6 +217,7 @@ export default function ChatPageDeatil() {
 
   useEffect(() => {
     const question = searchParams.get("question")?.trim();
+    const file = searchParams.get("file"); // 在 router.replace 之前捕获
     if (!question || hasAutoAskedRef.current) return;
 
     hasAutoAskedRef.current = true; // 立即标记，防止重入
@@ -217,7 +227,10 @@ export default function ChatPageDeatil() {
 
     // 延迟一丁点发送，确保路由状态已更新
     setTimeout(() => {
-      sendMessage({ text: question });
+      sendMessage({
+        text: question,
+        fileName: file ? decodeURIComponent(file) : undefined,
+      });
     }, 50);
 
     // 如果是新对话，同步更新侧边栏状态
@@ -259,13 +272,16 @@ export default function ChatPageDeatil() {
 
   const [isUploading, setIsUploading] = useState(false);
   const [currentFile, setCurrentFile] = useState<string | null>(null);
+  const [pendingFile, setPendingFile] = useState<string | null>(null);
 
   // 新增：进入页面时检查 URL 参数，如果带了 file，说明是从首页上传跳转过来的
   useEffect(() => {
     const fileName = searchParams.get("file");
     if (fileName) {
-      setCurrentFile(decodeURIComponent(fileName));
+      const name = decodeURIComponent(fileName);
+      setCurrentFile(name);
       setUseRAG(true);
+      setPendingFile(name); // 自动提问时带上文件名
     }
   }, []);
 
@@ -285,8 +301,9 @@ export default function ChatPageDeatil() {
       if (res.code === 0) {
         message.success(t("common.uploadSuccess"));
 
-        setCurrentFile(file.name); //设置输入框显示的名字
+        setCurrentFile(file.name);
         setUseRAG(true);
+        setPendingFile(file.name); // 下次提问自动带上文件名
       } else {
         message.error(res.message);
       }
@@ -300,9 +317,18 @@ export default function ChatPageDeatil() {
   // 删除文件
   const handleRemoveFile = async () => {
     setCurrentFile(null);
+    setPendingFile(null);
     setUseRAG(false);
-    // 可选：调用后端接口清理该对话的向量数据，或者保留在库中
   };
+
+  // 封装 sendMessage，自动带上 pendingFile（仅第一次提问生效）
+  const handleSendMessage = useCallback(
+    (payload: { text: string }) => {
+      sendMessage({ text: payload.text, fileName: pendingFile || undefined });
+      if (pendingFile) setPendingFile(null);
+    },
+    [sendMessage, pendingFile],
+  );
 
   // 删除信息
   const handleMessageDelete = useCallback(
@@ -335,7 +361,7 @@ export default function ChatPageDeatil() {
       />
       <div className={styles.footer}>
         <ChatInput
-          sendMessage={sendMessage}
+          sendMessage={handleSendMessage}
           type="chatDetail"
           isResponding={status === "streaming"}
           onStop={stop}

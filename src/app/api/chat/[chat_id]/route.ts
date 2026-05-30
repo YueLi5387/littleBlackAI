@@ -30,11 +30,12 @@ export async function GET(
     const messages = await getAllMessages(chatId);
 
     // 转换为前端 useChat 需要的格式
-    const formattedMessages = messages.map((msg) => ({
+    const formattedMessages = messages.map((msg: any) => ({
       id: String(msg.id),
       role: msg.role,
       content: msg.content,
       createdAt: msg.createdAt,
+      fileName: msg.fileName,
     }));
 
     return NextResponse.json(

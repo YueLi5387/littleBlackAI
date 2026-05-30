@@ -158,6 +158,12 @@ export const ChatInput = memo(function ChatInput({
         <Upload
           showUploadList={false}
           beforeUpload={(file) => {
+            if (currentFileName) {
+              message.warning(
+                t("chat.removeFileFirst") || "请先移除当前文件再上传新文件",
+              );
+              return false;
+            }
             if (type === "chatHome") {
               setLocalFile(file);
             } else {
@@ -166,13 +172,18 @@ export const ChatInput = memo(function ChatInput({
             return false;
           }}
           accept=".pdf,.docx,.md,.txt"
+          disabled={isResponding || isUploading || !!currentFileName}
         >
           <Button
             icon={<PaperClipOutlined />}
             loading={isUploading}
             disabled={!!currentFileName}
             className={styles.uploadBtn}
-            title={t("common.onlyUploadFileOne")}
+            title={
+              currentFileName
+                ? t("common.onlyUploadFileOne")
+                : t("common.uploadFile")
+            }
           />
         </Upload>
         <Button

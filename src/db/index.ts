@@ -45,6 +45,7 @@ export const addMessage = async (
   chatId: number,
   role: string,
   content: string,
+  fileName?: string,
 ) => {
   const [message] = await db
     .insert(messagesTable)
@@ -52,6 +53,7 @@ export const addMessage = async (
       chatId,
       role,
       content,
+      ...(fileName ? { fileName } : {}),
     })
     .returning({ id: messagesTable.id });
 
@@ -156,11 +158,15 @@ export const getErrorEventById = async (id: number) => {
   return event ?? null;
 };
 
-// 批量新增知识库切片
+// 批量新增知识库切片（分批插入，防止大文件参数过多导致失败）
 export const addKnowledgeChunks = async (
   chunks: { chatId: number; content: string; embedding: number[] }[],
 ) => {
-  return await db.insert(knowledgeChunksTable).values(chunks);
+  const BATCH_SIZE = 50; // 每组 50 条，安全且高效
+  for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+    const batch = chunks.slice(i, i + BATCH_SIZE);
+    await db.insert(knowledgeChunksTable).values(batch);
+  }
 };
 
 // 删除指定对话的所有知识库切片（每个对话组在同一时间内只有有一个文件存在）

@@ -31,6 +31,7 @@ export const messagesTable = pgTable(
       .references(() => chatsTable.id, { onDelete: "cascade" }),
     role: varchar("role", { length: 20 }).notNull(),
     content: text("content").notNull(),
+    fileName: varchar("file_name", { length: 255 }),
     createdAt: timestamp("created_at").defaultNow().notNull(),
   },
   (table) => [index("messages_chat_id_idx").on(table.chatId)],

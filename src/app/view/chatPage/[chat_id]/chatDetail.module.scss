@@ -75,6 +75,22 @@
     color: #ff4d4f;
   }
 
+  .fileTag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 8px;
+    margin-bottom: 6px;
+    background: rgba(79, 110, 247, 0.08);
+    border: 1px solid rgba(79, 110, 247, 0.2);
+    border-radius: 4px;
+    font-size: 12px;
+    color: var(--color-primary);
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .markdownBody {
     :global(p) {
       margin: 0 0 8px;
@@ -107,8 +123,13 @@
     }
   }
   @keyframes blink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0;
+    }
   }
   .streamingText {
     overflow-x: auto;

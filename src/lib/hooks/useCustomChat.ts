@@ -6,6 +6,7 @@ export type ChatMessage = {
   id: string;
   role: "user" | "assistant" | "system";
   parts: ChatPart[];
+  fileName?: string;
 };
 
 interface UseCustomChatOptions {
@@ -39,7 +40,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
   }, []);
 
   const sendMessage = useCallback(
-    async ({ text }: { text: string }) => {
+    async ({ text, fileName }: { text: string; fileName?: string }) => {
       // 如果正在输出，则不允许再次发送
       if (statusRef.current === "streaming") return;
 
@@ -48,6 +49,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
         id: Date.now().toString(), //先把id设置为当前时间戳，等输出完成后再更新
         role: "user",
         parts: [{ type: "text", text }],
+        fileName,
       };
       // 先预设好ai发送的信息
       const assistantMsg: ChatMessage = {
