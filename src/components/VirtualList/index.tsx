@@ -39,7 +39,6 @@ export function VirtualList<T>({
   const [scrollTop, setScrollTop] = useState(0);
   const [clientHeight, setClientHeight] = useState(0); //可视区域的真实高度
   const isAtBottom = useRef(true); // 是否处于底部
-  const prevListLength = useRef(listData.length); // 记录上次列表长度
 
   // 初始化positions数组，预估每个item的高度和位置
   const [positions, setPositions] = useState(() =>
@@ -122,24 +121,19 @@ export function VirtualList<T>({
   const totalHeight =
     positions.length > 0 ? positions[positions.length - 1].bottom : 0;
 
-  // 锚定底部逻辑优化
+  // 锚定底部：每帧检查，用户在底部就跟着内容滚动
   useEffect(() => {
-    if (autoScrollToBottom && containerRef.current) {
-      const container = containerRef.current;
-      const isNewMessage = listData.length > prevListLength.current;
-      prevListLength.current = listData.length;
-
-      // 只有在以下情况滚动到底部：
-      // 1. 列表长度增加了（新消息到来）
-      // 2. 当前已经处于底部（粘性滚动，处理流式输出或图片加载）
-      if (isNewMessage || isAtBottom.current) {
-        const rafId = requestAnimationFrame(() => {
-          container.scrollTop = container.scrollHeight;
-        });
-        return () => cancelAnimationFrame(rafId);
+    if (!autoScrollToBottom) return;
+    let raf: number;
+    const tick = () => {
+      if (containerRef.current && isAtBottom.current) {
+        containerRef.current.scrollTop = containerRef.current.scrollHeight;
       }
-    }
-  }, [totalHeight, autoScrollToBottom]);
+      raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [autoScrollToBottom]);
 
   const pendingUpdates = useRef<Record<number, number>>({}); //暂时储存高度，等屏幕刷新时批量更新
   const rafId = useRef<number | null>(null); // 用于取消 rAF 回调的引用
@@ -208,7 +202,7 @@ export function VirtualList<T>({
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
         setScrollTop(scrollTop);
         //  判断是否处于底部（留出 5px 余量，防止亚像素计算导致的判断失效）
-        isAtBottom.current = scrollHeight - scrollTop - clientHeight < 5;
+        isAtBottom.current = scrollHeight - scrollTop - clientHeight < 25;
       }}
     >
       {/* 占位盒子 - 移除 width: 100% 避免潜在的抖动和溢出 */}

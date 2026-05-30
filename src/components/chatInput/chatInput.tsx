@@ -105,16 +105,18 @@ export const ChatInput = memo(function ChatInput({
   };
 
   const toChatDetailOrSubmit = async () => {
+    // 先处理停止：无论输入框是否有内容，停止优先
+    if (type === "chatDetail" && isResponding) {
+      onStop?.();
+      return;
+    }
+
     const question = input.trim();
     if (!question) return;
 
     if (type === "chatHome") {
       await toChatDetail(question);
     } else {
-      if (isResponding && type === "chatDetail") {
-        onStop?.();
-        return;
-      }
       sendMessage?.({ text: question });
       setInput("");
     }
