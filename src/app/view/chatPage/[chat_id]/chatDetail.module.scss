@@ -132,10 +132,16 @@
     }
   }
   .streamingText {
-    overflow-x: auto;
-    padding: 10px 12px;
-    border-radius: 8px;
-    margin: 8px 0;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 0;
+    margin: 0;
+    font-family: inherit;
+    font-size: inherit;
+    line-height: inherit;
+    background: transparent;
+    border: none;
+    display: inline;
     &::after {
       content: "▊";
       display: inline-block;
@@ -143,6 +149,7 @@
       margin-left: 2px;
       color: var(--color-primary);
       font-size: 14px;
+      vertical-align: baseline;
     }
   }
 

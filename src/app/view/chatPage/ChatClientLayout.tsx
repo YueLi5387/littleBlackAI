@@ -326,7 +326,7 @@ export default function ChatClientLayout({
               >
                 <Option value="zh">{t("common.china")}</Option>
                 <Option value="en">{t("common.English")}</Option>
-                <Option value="jp">{t("common.Jap")}</Option>
+                <Option value="ja">{t("common.Jap")}</Option>
               </Select>
               {isAdmin && (
                 <>

@@ -201,8 +201,8 @@ export function VirtualList<T>({
       onScroll={(e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
         setScrollTop(scrollTop);
-        //  判断是否处于底部（留出 5px 余量，防止亚像素计算导致的判断失效）
-        isAtBottom.current = scrollHeight - scrollTop - clientHeight < 25;
+        //  判断是否处于底部（留出 20px 余量，防止亚像素计算导致的判断失效）
+        isAtBottom.current = scrollHeight - scrollTop - clientHeight < 20;
       }}
     >
       {/* 占位盒子 - 移除 width: 100% 避免潜在的抖动和溢出 */}

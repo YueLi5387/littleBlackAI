@@ -84,17 +84,34 @@ const MessageItem = memo(
         <div className={styles.bubbleWrap}>
           <div className={styles.bubble}>
             {message.fileName && message.role === "user" && (
-              <div className={styles.fileTag}>
-                {message.fileName}
-              </div>
+              <div className={styles.fileTag}>{message.fileName}</div>
             )}
             {message.parts.map((part, pIndex) =>
               part.type === "text" ? (
                 isStreaming ? (
-                  // 输出过程中用<pre>保留原文格式
-                  <pre key={pIndex} className={styles.streamingText}>
-                    {part.text ?? ""}
-                  </pre>
+                  <div key={pIndex}>
+                    {(() => {
+                      const text = part.text ?? "";
+                      const lastIdx = text.lastIndexOf("\n\n");
+                      if (lastIdx !== -1) {
+                        return (
+                          <>
+                            <div className={styles.markdownBody}>
+                              <MemoizedReactMarkdown
+                                remarkPlugins={REMARK_PLUGINS}
+                              >
+                                {text.slice(0, lastIdx)}
+                              </MemoizedReactMarkdown>
+                            </div>
+                            <pre className={styles.streamingText}>
+                              {text.slice(lastIdx)}
+                            </pre>
+                          </>
+                        );
+                      }
+                      return <pre className={styles.streamingText}>{text}</pre>;
+                    })()}
+                  </div>
                 ) : (
                   // 输出完毕后转markdown
                   <div key={pIndex} className={styles.markdownBody}>
