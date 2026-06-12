@@ -39,6 +39,7 @@ export function VirtualList<T>({
   const [scrollTop, setScrollTop] = useState(0);
   const [clientHeight, setClientHeight] = useState(0); //可视区域的真实高度
   const isAtBottom = useRef(true); // 是否处于底部
+  const lastScrollTop = useRef(0); // 记录上一次滚动位置，用于判断方向
 
   // 初始化positions数组，预估每个item的高度和位置
   const [positions, setPositions] = useState(() =>
@@ -200,9 +201,23 @@ export function VirtualList<T>({
       }}
       onScroll={(e) => {
         const { scrollTop, scrollHeight, clientHeight } = e.currentTarget;
+
+        // 判断是否是主动向上滚动
+        const isScrollingUp = scrollTop < lastScrollTop.current;
+        lastScrollTop.current = scrollTop;
+
         setScrollTop(scrollTop);
-        //  判断是否处于底部（留出 20px 余量，防止亚像素计算导致的判断失效）
-        isAtBottom.current = scrollHeight - scrollTop - clientHeight < 20;
+
+        // 判断当前距离底部的距离
+        const offsetFromBottom = scrollHeight - scrollTop - clientHeight;
+
+        if (isScrollingUp && offsetFromBottom > 20) {
+          // 只有当用户主动向上滚动，且距离底部超过 20px 时，才认为离开了底部
+          isAtBottom.current = false;
+        } else if (offsetFromBottom < 20) {
+          // 只要回到探底区域，就重新激活锚定状态
+          isAtBottom.current = true;
+        }
       }}
     >
       {/* 占位盒子 - 移除 width: 100% 避免潜在的抖动和溢出 */}
