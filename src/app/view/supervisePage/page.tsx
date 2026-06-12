@@ -191,8 +191,7 @@ export default function SupervisePage() {
         };
         initPlayer();
       } else {
-        replayerContainer.current.innerHTML =
-          `<div style="color: #999; text-align: center; padding: 20px;">${t("common.replayIncomplete")}</div>`;
+        replayerContainer.current.innerHTML = `<div style="color: #999; text-align: center; padding: 20px;">${t("common.replayIncomplete")}</div>`;
       }
     }
 
@@ -428,7 +427,7 @@ export default function SupervisePage() {
           ) : (
             <div className={styles.perfDashboard}>
               <Row gutter={[16, 16]}>
-                <Col span={8}>
+                <Col span={6}>
                   <Card size="small">
                     <Statistic
                       title={t("common.avgLoadTime")}
@@ -445,7 +444,41 @@ export default function SupervisePage() {
                     />
                   </Card>
                 </Col>
-                <Col span={8}>
+                <Col span={6}>
+                  <Card size="small">
+                    <Statistic
+                      title={t("common.avgFP")}
+                      value={
+                        performanceEvents.reduce(
+                          (acc, cur) => acc + (cur.metrics.fp || 0),
+                          0,
+                        ) /
+                        (performanceEvents.filter((e) => e.metrics.fp).length ||
+                          1)
+                      }
+                      suffix="ms"
+                      precision={0}
+                    />
+                  </Card>
+                </Col>
+                <Col span={6}>
+                  <Card size="small">
+                    <Statistic
+                      title={t("common.avgFCP")}
+                      value={
+                        performanceEvents.reduce(
+                          (acc, cur) => acc + (cur.metrics.fcp || 0),
+                          0,
+                        ) /
+                        (performanceEvents.filter((e) => e.metrics.fcp)
+                          .length || 1)
+                      }
+                      suffix="ms"
+                      precision={0}
+                    />
+                  </Card>
+                </Col>
+                <Col span={6}>
                   <Card size="small">
                     <Statistic
                       title={t("common.totalReports")}
@@ -453,7 +486,44 @@ export default function SupervisePage() {
                     />
                   </Card>
                 </Col>
-                <Col span={8}>
+              </Row>
+
+              <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+                <Col span={6}>
+                  <Card size="small">
+                    <Statistic
+                      title={t("common.avgTTFB")}
+                      value={
+                        performanceEvents.reduce(
+                          (acc, cur) => acc + (cur.metrics.ttfb || 0),
+                          0,
+                        ) /
+                        (performanceEvents.filter((e) => e.metrics.ttfb)
+                          .length || 1)
+                      }
+                      suffix="ms"
+                      precision={0}
+                    />
+                  </Card>
+                </Col>
+                <Col span={6}>
+                  <Card size="small">
+                    <Statistic
+                      title={t("common.avgDOMReady")}
+                      value={
+                        performanceEvents.reduce(
+                          (acc, cur) => acc + (cur.metrics.domReady || 0),
+                          0,
+                        ) /
+                        (performanceEvents.filter((e) => e.metrics.domReady)
+                          .length || 1)
+                      }
+                      suffix="ms"
+                      precision={0}
+                    />
+                  </Card>
+                </Col>
+                <Col span={6}>
                   <Card size="small">
                     <Statistic
                       title={t("common.activePaths")}
@@ -496,6 +566,16 @@ export default function SupervisePage() {
                               </Col>
                               <Col>
                                 TTFB: {item.metrics.ttfb?.toFixed(0) || "-"}ms
+                              </Col>
+                              <Col>
+                                FP: {item.metrics.fp?.toFixed(0) || "-"}ms
+                              </Col>
+                              <Col>
+                                FCP: {item.metrics.fcp?.toFixed(0) || "-"}ms
+                              </Col>
+                              <Col>
+                                DCL: {item.metrics.domReady?.toFixed(0) || "-"}
+                                ms
                               </Col>
                               <Col>
                                 {t("common.time")}:{" "}
