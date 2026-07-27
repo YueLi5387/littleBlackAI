@@ -203,6 +203,8 @@ export const hybridSearch = async (
              ROW_NUMBER() OVER (ORDER BY embedding <=> ${JSON.stringify(queryEmbedding)}::vector) as rank
       FROM knowledge_chunks
       WHERE chat_id = ${chatId}
+      -- LIMIT 必须在排序之后执行，否则大文件/后续文件会随机截断候选切片。
+      ORDER BY embedding <=> ${JSON.stringify(queryEmbedding)}::vector
       LIMIT 20
     ),
     keyword_matches AS (
@@ -210,6 +212,8 @@ export const hybridSearch = async (
              ROW_NUMBER() OVER (ORDER BY ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', ${queryText})) DESC) as rank
       FROM knowledge_chunks
       WHERE chat_id = ${chatId} AND to_tsvector('simple', content) @@ plainto_tsquery('simple', ${queryText})
+      -- 关键词候选同样先排序再截断，保证 rerank 输入的是最相关的一批内容。
+      ORDER BY ts_rank(to_tsvector('simple', content), plainto_tsquery('simple', ${queryText})) DESC
       LIMIT 20
     )
     SELECT 
