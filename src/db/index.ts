@@ -181,6 +181,16 @@ export const countPerformanceEvents = async () => {
   return Number(result.count);
 };
 
+// 删除指定性能日志。
+export const deletePerformanceEventById = async (id: number) => {
+  const [deleted] = await db
+    .delete(performanceEventsTable)
+    .where(eq(performanceEventsTable.id, id))
+    .returning({ id: performanceEventsTable.id });
+
+  return deleted ?? null;
+};
+
 // 根据 ID 获取错误事件
 export const getErrorEventById = async (id: number) => {
   const [event] = await db

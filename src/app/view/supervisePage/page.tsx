@@ -226,6 +226,25 @@ export default function SupervisePage() {
     [selectedEvent?.id],
   );
 
+  const handleDeletePerformanceEvent = useCallback(async (eventId: number) => {
+    try {
+      const res = (await http.delete(`/api/performanceEvents?id=${eventId}`)) as {
+        code: number;
+      };
+      if (res.code === 0) {
+        setPerformanceEvents((prev) =>
+          prev.filter((item) => item.id !== eventId),
+        );
+        setPerfTotal((prev) => Math.max(prev - 1, 0));
+        message.success("已删除性能日志");
+      }
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : "删除性能日志失败";
+      message.error(errorMessage);
+    }
+  }, []);
+
   const renderErrorEventItem = useCallback(
     (item: ErrorEvent) => {
       const itemError =
@@ -592,7 +611,26 @@ export default function SupervisePage() {
                       showSizeChanger: false,
                     }}
                     renderItem={(item) => (
-                      <List.Item>
+                      <List.Item
+                        actions={[
+                          <Popconfirm
+                            key="delete"
+                            title="确认删除这条性能日志吗？"
+                            okText={t("common.confirm")}
+                            cancelText={t("common.cancel")}
+                            onConfirm={() =>
+                              void handleDeletePerformanceEvent(item.id)
+                            }
+                          >
+                            <Button
+                              type="text"
+                              danger
+                              size="small"
+                              icon={<DeleteOutlined />}
+                            />
+                          </Popconfirm>,
+                        ]}
+                      >
                         <List.Item.Meta
                           title={<span>{item.path}</span>}
                           description={
