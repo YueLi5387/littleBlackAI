@@ -137,6 +137,16 @@ export const getAllErrorEvents = async (page = 1, pageSize = 8) => {
     .offset((page - 1) * pageSize);
 };
 
+// 删除指定错误日志。
+export const deleteErrorEventById = async (id: number) => {
+  const [deleted] = await db
+    .delete(errorEventsTable)
+    .where(eq(errorEventsTable.id, id))
+    .returning({ id: errorEventsTable.id });
+
+  return deleted ?? null;
+};
+
 // 新增性能日志
 export const addPerformanceEvent = async (
   userId: string | null,

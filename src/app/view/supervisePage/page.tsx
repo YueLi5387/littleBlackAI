@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
   Layout,
   Button,
@@ -13,6 +13,7 @@ import {
   Statistic,
   Row,
   Col,
+  Popconfirm,
 } from "antd";
 import {
   ArrowLeftOutlined,
@@ -23,6 +24,7 @@ import {
   DashboardOutlined,
   RightOutlined,
   DownOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
 import { useRouter } from "next/navigation";
 import styles from "./supervise.module.scss";
@@ -204,6 +206,72 @@ export default function SupervisePage() {
 
   const handleBack = () => router.back();
 
+  const handleDeleteErrorEvent = useCallback(
+    async (eventId: number) => {
+      try {
+        const res = (await http.delete(`/api/errorEvents?id=${eventId}`)) as {
+          code: number;
+        };
+        if (res.code === 0) {
+          setErrorEvents((prev) => prev.filter((item) => item.id !== eventId));
+          if (selectedEvent?.id === eventId) setSelectedEvent(null);
+          message.success("已删除错误日志");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "删除错误日志失败";
+        message.error(errorMessage);
+      }
+    },
+    [selectedEvent?.id],
+  );
+
+  const renderErrorEventItem = useCallback(
+    (item: ErrorEvent) => {
+      const itemError =
+        typeof item.error === "string" ? JSON.parse(item.error) : item.error;
+
+      return (
+        <div
+          key={item.id}
+          className={`${styles.eventItem} ${mode === "error" && selectedEvent?.id === item.id ? styles.active : ""}`}
+          onClick={() => {
+            setMode("error");
+            setSelectedEvent(item);
+          }}
+        >
+          <div className={styles.eventItemMain}>
+            <span className={styles.errorName}>
+              {itemError?.message || t("common.noRecord")}
+            </span>
+            <span className={styles.errorTime}>
+              {dayjs(item.createdAt).format("MM-DD HH:mm:ss")}
+            </span>
+          </div>
+          <Popconfirm
+            title="确认删除这条错误日志吗？"
+            okText={t("common.confirm")}
+            cancelText={t("common.cancel")}
+            onConfirm={(event) => {
+              event?.stopPropagation();
+              void handleDeleteErrorEvent(item.id);
+            }}
+          >
+            <Button
+              type="text"
+              danger
+              size="small"
+              icon={<DeleteOutlined />}
+              className={styles.eventDeleteBtn}
+              onClick={(event) => event.stopPropagation()}
+            />
+          </Popconfirm>
+        </div>
+      );
+    },
+    [handleDeleteErrorEvent, mode, selectedEvent?.id, t],
+  );
+
   if (!isAdmin) {
     return (
       <div
@@ -290,29 +358,7 @@ export default function SupervisePage() {
               }
             }}
           >
-            {errorEvents.map((item) => {
-              const itemError =
-                typeof item.error === "string"
-                  ? JSON.parse(item.error)
-                  : item.error;
-              return (
-                <div
-                  key={item.id}
-                  className={`${styles.eventItem} ${mode === "error" && selectedEvent?.id === item.id ? styles.active : ""}`}
-                  onClick={() => {
-                    setMode("error");
-                    setSelectedEvent(item);
-                  }}
-                >
-                  <span className={styles.errorName}>
-                    {itemError?.message || t("common.noRecord")}
-                  </span>
-                  <span className={styles.errorTime}>
-                    {dayjs(item.createdAt).format("MM-DD HH:mm:ss")}
-                  </span>
-                </div>
-              );
-            })}
+            {errorEvents.map(renderErrorEventItem)}
             {errorEvents.length > 0 && (errorLoadingMore || !errorHasMore) && (
               <div
                 style={{

@@ -89,6 +89,9 @@
         transition: all 0.3s;
         border: 1px solid transparent;
         background: #fff;
+        display: flex;
+        align-items: center;
+        gap: 8px;
 
         &:hover {
           background: #f5f7fa;
@@ -99,6 +102,20 @@
           background: #e6f7ff;
           border-color: #91d5ff;
           box-shadow: 0 2px 4px rgba(24, 144, 255, 0.1);
+        }
+
+        .eventItemMain {
+          min-width: 0;
+          flex: 1;
+        }
+
+        .eventDeleteBtn {
+          opacity: 0;
+          flex: 0 0 auto;
+        }
+
+        &:hover .eventDeleteBtn {
+          opacity: 1;
         }
 
         .errorName {
