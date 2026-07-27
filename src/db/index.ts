@@ -93,6 +93,16 @@ export const getChatById = async (chatId: number) => {
   return chat ?? null;
 };
 
+// 删除整组对话；消息和知识库切片依赖数据库外键级联删除。
+export const deleteChatById = async (chatId: number) => {
+  const [deleted] = await db
+    .delete(chatsTable)
+    .where(eq(chatsTable.id, chatId))
+    .returning({ id: chatsTable.id });
+
+  return deleted ?? null;
+};
+
 // 删除指定对话中的某一条消息
 export const deleteMessageById = async (chatId: number, messageId: number) => {
   const [deleted] = await db

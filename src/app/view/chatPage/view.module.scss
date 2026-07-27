@@ -10,6 +10,45 @@
     overflow-y: auto;
     z-index: 100;
 
+    .chatMenuItem {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+      padding: 4px 0;
+      line-height: 1.2;
+    }
+
+    .chatMenuText {
+      min-width: 0;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .chatTitle {
+      font-size: 16px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .chatTime {
+      font-size: 10px;
+      color: rgba(255, 255, 255, 0.45);
+    }
+
+    .chatDeleteBtn {
+      opacity: 0;
+      flex: 0 0 auto;
+      color: rgba(255, 255, 255, 0.65);
+    }
+
+    .chatMenuItem:hover .chatDeleteBtn {
+      opacity: 1;
+    }
+
     @media (max-width: 768px) {
       position: fixed;
       left: 0;

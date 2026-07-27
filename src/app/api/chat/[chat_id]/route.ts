@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { deleteMessageById, getAllMessages, getChatById } from "@/db";
+import {
+  deleteChatById,
+  deleteMessageById,
+  getAllMessages,
+  getChatById,
+} from "@/db";
 
-// 获取改chat_id对话组下的所有聊天信息
+// 获取指定对话下的所有历史消息。
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ chat_id: string }> },
@@ -22,14 +27,12 @@ export async function GET(
     const chatId = Number(chat_id);
     if (isNaN(chatId)) {
       return NextResponse.json(
-        { code: 1, message: "无效的聊天ID" },
+        { code: 1, message: "无效的聊天 ID" },
         { status: 400 },
       );
     }
 
     const messages = await getAllMessages(chatId);
-
-    // 转换为前端 useChat 需要的格式
     const formattedMessages = messages.map((msg: any) => ({
       id: String(msg.id),
       role: msg.role,
@@ -48,7 +51,7 @@ export async function GET(
   }
 }
 
-// 删除该 chat_id 对话组下的一条消息
+// 不带 messageId 时删除整组对话；带 messageId 时删除该对话下的一条消息。
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ chat_id: string }> },
@@ -68,26 +71,38 @@ export async function DELETE(
     const chatId = Number(chat_id);
     if (isNaN(chatId)) {
       return NextResponse.json(
-        { code: 1, message: "无效的聊天ID" },
+        { code: 1, message: "无效的聊天 ID" },
         { status: 400 },
       );
     }
 
-    const messageIdParam = req.nextUrl.searchParams.get("messageId");
-    const messageId = Number(messageIdParam);
-    if (!messageIdParam || isNaN(messageId)) {
-      return NextResponse.json(
-        { code: 1, message: "无效的消息ID" },
-        { status: 400 },
-      );
-    }
-
-    // 防止“越权删除“，如果数据库里根本没这个对话组或者这个对话组的主人 ID，不是当前登录用户的 ID，就不能删除
+    // 删除前统一校验对话归属，防止越权删除对话或消息。
     const chat = await getChatById(chatId);
     if (!chat || chat.userId !== user.id) {
       return NextResponse.json(
         { code: 1, message: "无权限操作该对话" },
         { status: 403 },
+      );
+    }
+
+    const messageIdParam = req.nextUrl.searchParams.get("messageId");
+    if (!messageIdParam) {
+      const deletedChat = await deleteChatById(chatId);
+      if (!deletedChat) {
+        return NextResponse.json(
+          { code: 1, message: "对话不存在或已删除" },
+          { status: 404 },
+        );
+      }
+
+      return NextResponse.json({ code: 0, data: deletedChat }, { status: 200 });
+    }
+
+    const messageId = Number(messageIdParam);
+    if (isNaN(messageId)) {
+      return NextResponse.json(
+        { code: 1, message: "无效的消息 ID" },
+        { status: 400 },
       );
     }
 
@@ -101,7 +116,7 @@ export async function DELETE(
 
     return NextResponse.json({ code: 0, data: deleted }, { status: 200 });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "删除消息失败";
+    const message = e instanceof Error ? e.message : "删除失败";
     return NextResponse.json({ code: 1, message }, { status: 500 });
   }
 }
