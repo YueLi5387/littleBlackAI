@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import http from "@/lib/utils/http";
 import { useTranslation } from "react-i18next";
+import { canSubmitChatInput } from "@/lib/utils/chatControls";
 
 type ChatInputMode = "chatHome" | "chatDetail";
 
@@ -113,6 +114,17 @@ export const ChatInput = memo(function ChatInput({
 
     const question = input.trim();
     if (!question) return;
+    if (
+      !canSubmitChatInput({
+        type,
+        hasQuestion: Boolean(question),
+        isResponding,
+        isUploading: Boolean(isUploading),
+        isCreatingChat,
+      })
+    ) {
+      return;
+    }
 
     if (type === "chatHome") {
       await toChatDetail(question);
@@ -193,6 +205,15 @@ export const ChatInput = memo(function ChatInput({
           type={isResponding && type === "chatDetail" ? "default" : "primary"}
           onClick={() => void toChatDetailOrSubmit()}
           loading={isCreatingChat}
+          disabled={
+            !canSubmitChatInput({
+              type,
+              hasQuestion: Boolean(input.trim()),
+              isResponding,
+              isUploading: Boolean(isUploading),
+              isCreatingChat,
+            })
+          }
         >
           {isResponding && type === "chatDetail"
             ? t("common.stop")

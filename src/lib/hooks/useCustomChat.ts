@@ -40,7 +40,15 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
   }, []);
 
   const sendMessage = useCallback(
-    async ({ text, fileName }: { text: string; fileName?: string }) => {
+    async ({
+      text,
+      fileName,
+      useRAG: sendUseRAG,
+    }: {
+      text: string;
+      fileName?: string;
+      useRAG?: boolean;
+    }) => {
       // 如果正在输出，则不允许再次发送
       if (statusRef.current === "streaming") return;
 
@@ -73,7 +81,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             messages: newMessages,
-            useRAG: useRAGRef.current, // 使用 ref 获取最新的 RAG 开启状态
+            useRAG: sendUseRAG ?? useRAGRef.current, // 本次发送可显式指定 RAG，避免上传完成后的异步状态不同步。
           }),
           signal: controller.signal,
         });

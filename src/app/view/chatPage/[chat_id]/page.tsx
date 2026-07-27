@@ -23,6 +23,7 @@ import remarkGfm from "remark-gfm";
 import throttle from "lodash/throttle";
 import { useTranslation } from "react-i18next";
 import { VirtualList } from "@/components/VirtualList/index";
+import { shouldUseRAGForSend } from "@/lib/utils/chatControls";
 
 type ChatPart = { type: string; text?: string };
 type ChatMessage = {
@@ -341,10 +342,14 @@ export default function ChatPageDeatil() {
   // 封装 sendMessage，自动带上 pendingFile（仅第一次提问生效）
   const handleSendMessage = useCallback(
     (payload: { text: string }) => {
-      sendMessage({ text: payload.text, fileName: pendingFile || undefined });
+      sendMessage({
+        text: payload.text,
+        fileName: pendingFile || undefined,
+        useRAG: shouldUseRAGForSend({ currentFile, pendingFile, useRAG }),
+      });
       if (pendingFile) setPendingFile(null);
     },
-    [sendMessage, pendingFile],
+    [sendMessage, pendingFile, currentFile, useRAG],
   );
 
   // 删除信息
