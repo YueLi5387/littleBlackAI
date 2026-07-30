@@ -46,6 +46,14 @@ export const ChatInput = memo(function ChatInput({
   const currentFileName =
     type === "chatHome" ? localFile?.name : propsCurrentFile;
   const isUploading = type === "chatHome" ? localIsUploading : propsIsUploading;
+  const question = input.trim();
+  const canSubmit = canSubmitChatInput({
+    type,
+    hasQuestion: Boolean(question),
+    isResponding,
+    isUploading: Boolean(isUploading),
+    isCreatingChat,
+  });
 
   // 移除文件
   const handleRemoveFile = () => {
@@ -112,19 +120,7 @@ export const ChatInput = memo(function ChatInput({
       return;
     }
 
-    const question = input.trim();
-    if (!question) return;
-    if (
-      !canSubmitChatInput({
-        type,
-        hasQuestion: Boolean(question),
-        isResponding,
-        isUploading: Boolean(isUploading),
-        isCreatingChat,
-      })
-    ) {
-      return;
-    }
+    if (!canSubmit) return;
 
     if (type === "chatHome") {
       await toChatDetail(question);
@@ -205,15 +201,7 @@ export const ChatInput = memo(function ChatInput({
           type={isResponding && type === "chatDetail" ? "default" : "primary"}
           onClick={() => void toChatDetailOrSubmit()}
           loading={isCreatingChat}
-          disabled={
-            !canSubmitChatInput({
-              type,
-              hasQuestion: Boolean(input.trim()),
-              isResponding,
-              isUploading: Boolean(isUploading),
-              isCreatingChat,
-            })
-          }
+          disabled={!canSubmit}
         >
           {isResponding && type === "chatDetail"
             ? t("common.stop")

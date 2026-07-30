@@ -14,6 +14,7 @@ type RAGSendState = {
   useRAG: boolean;
 };
 
+// 发送/暂停按钮是否可点击
 export const canSubmitChatInput = ({
   type,
   hasQuestion,
@@ -29,10 +30,11 @@ export const canSubmitChatInput = ({
   return hasQuestion;
 };
 
+// 是否使用RAG
 export const shouldUseRAGForSend = ({
-  currentFile,
-  pendingFile,
-  useRAG,
+  currentFile, //当前聊天已经绑定的文件
+  pendingFile, //待上传文件
+  useRAG, //是否使用RAG
 }: RAGSendState) => {
   // 只要页面仍显示已上传文件，就强制按 RAG 请求发送，避免状态刷新/异步更新后漏带 useRAG。
   return useRAG || Boolean(currentFile || pendingFile);

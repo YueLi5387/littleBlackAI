@@ -10,6 +10,45 @@
     overflow-y: auto;
     z-index: 100;
 
+    :global(.ant-menu) {
+      background: transparent;
+    }
+
+    :global(.ant-menu-item) {
+      width: calc(100% - 12px);
+      height: auto;
+      min-height: 64px;
+      margin: 3px 6px;
+      padding: 8px 12px !important;
+      line-height: normal;
+      border: 1px solid rgba(151, 191, 220, 0.08);
+      border-radius: 6px;
+      background: rgba(86, 139, 176, 0.07);
+      transition: background-color 0.2s ease, border-color 0.2s ease;
+    }
+
+    :global(.ant-menu-item:hover) {
+      background: rgba(86, 139, 176, 0.15) !important;
+      border-color: rgba(151, 191, 220, 0.16);
+    }
+
+    :global(.ant-menu-item-selected) {
+      border-color: transparent;
+      background: #1677ff !important;
+    }
+
+    :global(.ant-menu-item-selected) .chatTitle {
+      color: #fff;
+    }
+
+    :global(.ant-menu-item-selected) .chatTime {
+      color: rgba(255, 255, 255, 0.7);
+    }
+
+    :global(.ant-menu-item::after) {
+      display: none;
+    }
+
     .chatMenuItem {
       display: flex;
       align-items: center;
@@ -29,6 +68,8 @@
 
     .chatTitle {
       font-size: 16px;
+      font-weight: 500;
+      color: rgba(222, 238, 250, 0.92);
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
@@ -36,17 +77,35 @@
 
     .chatTime {
       font-size: 10px;
-      color: rgba(255, 255, 255, 0.45);
+      color: rgba(147, 190, 219, 0.72);
     }
 
     .chatDeleteBtn {
+      align-self: center;
+      width: 28px;
+      height: 24px;
+      margin-top: 0;
+      padding: 0;
       opacity: 0;
       flex: 0 0 auto;
-      color: rgba(255, 255, 255, 0.65);
+      border: 0 !important;
+      border-radius: 0;
+      background: none !important;
+      box-shadow: none;
+      color: rgba(255, 255, 255, 0.55) !important;
+      transition: opacity 0.2s ease, color 0.2s ease;
     }
 
     .chatMenuItem:hover .chatDeleteBtn {
       opacity: 1;
+    }
+
+    .chatDeleteBtn:hover,
+    .chatDeleteBtn:focus,
+    .chatDeleteBtn:active {
+      background: none !important;
+      box-shadow: none !important;
+      color: rgba(255, 255, 255, 0.95) !important;
     }
 
     @media (max-width: 768px) {

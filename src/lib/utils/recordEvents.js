@@ -81,7 +81,7 @@ export const reportEvents = (err) => {
     error: errorDetail,
     events: [...events],
   };
-
+  // navigator.onLine-浏览器内置的网络检测API,true代表有网
   if (typeof navigator !== "undefined" && navigator.onLine === false) {
     void saveToQueue(payload);
     return;
