@@ -248,6 +248,9 @@ export default function ChatPageDeatil() {
       sendMessage({
         text: question,
         fileName: file ? decodeURIComponent(file) : undefined,
+        // 首页上传完成后会立即自动提问；不能依赖稍后才同步的 useRAG
+        // 状态，否则首轮请求会被当作普通聊天，模型拿不到文档检索结果。
+        useRAG: Boolean(file),
       });
     }, 50);
 

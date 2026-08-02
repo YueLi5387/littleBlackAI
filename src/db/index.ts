@@ -203,7 +203,7 @@ export const getErrorEventById = async (id: number) => {
 
 // 批量新增知识库切片（分批插入，防止大文件参数过多导致失败）
 export const addKnowledgeChunks = async (
-  chunks: { chatId: number; content: string; embedding: number[] }[],
+  chunks: { chatId: number; content: string; embedding: number[] | null }[],
 ) => {
   const BATCH_SIZE = 50; // 每组 50 条，安全且高效
   for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
@@ -217,6 +217,29 @@ export const deleteKnowledgeChunksByChatId = async (chatId: number) => {
   return await db
     .delete(knowledgeChunksTable)
     .where(eq(knowledgeChunksTable.chatId, chatId));
+};
+
+// 向量服务不可用时，均匀取出部分文档片段作为 RAG 兜底上下文。
+export const getKnowledgeChunksByChatId = async (
+  chatId: number,
+  limit: number = 10,
+) => {
+  const chunks = await db
+    .select({ content: knowledgeChunksTable.content })
+    .from(knowledgeChunksTable)
+    .where(eq(knowledgeChunksTable.chatId, chatId))
+    .orderBy(knowledgeChunksTable.id);
+
+  if (chunks.length <= limit) return chunks;
+  if (limit <= 1) return chunks.slice(0, 1);
+
+  // 从文档开头到结尾均匀取样，避免只把前几段交给模型。
+  return Array.from({ length: limit }, (_, index) => {
+    const chunkIndex = Math.round(
+      (index * (chunks.length - 1)) / (limit - 1),
+    );
+    return chunks[chunkIndex];
+  });
 };
 
 // 混合检索：向量相似度 + 关键词搜索 (RRF 算法)

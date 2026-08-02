@@ -7,6 +7,7 @@ export type ChatMessage = {
   role: "user" | "assistant" | "system";
   parts: ChatPart[];
   fileName?: string;
+  isError?: boolean;
 };
 
 interface UseCustomChatOptions {
@@ -65,7 +66,11 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
         role: "assistant",
         parts: [{ type: "text", text: "请稍等..." }],
       };
-      //  一次性将两条消息放入数组，先占位，ai输出的时候再更新msg信息
+      // 错误提示只用于页面展示，不能作为助手回答发送给模型。
+      const historyMessages = messagesRef.current.filter(
+        (message) => !message.isError,
+      );
+      const requestMessages = [...historyMessages, userMsg];
       const newMessages = [...messagesRef.current, userMsg, assistantMsg];
 
       setMessages(newMessages);
@@ -80,7 +85,7 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            messages: newMessages,
+            messages: requestMessages,
             useRAG: sendUseRAG ?? useRAGRef.current, // 本次发送可显式指定 RAG，避免上传完成后的异步状态不同步。
           }),
           signal: controller.signal,
@@ -163,6 +168,19 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
                     }
                     return next;
                   });
+                } else if (json.type === "error") {
+                  setMessages((prev) => {
+                    const last = prev[prev.length - 1];
+                    if (!last || last.role !== "assistant") return prev;
+                    return [
+                      ...prev.slice(0, -1),
+                      {
+                        ...last,
+                        parts: [{ type: "text", text: json.message }],
+                        isError: true,
+                      },
+                    ];
+                  });
                 }
               } catch (e) {
                 console.error("Parse error:", e, "Line:", line);
@@ -175,6 +193,18 @@ export function useCustomChat({ api, onFinish }: UseCustomChatOptions) {
           console.log("Stream aborted");
         } else {
           console.error("Stream error:", error);
+          setMessages((prev) => {
+            const last = prev[prev.length - 1];
+            if (!last || last.role !== "assistant") return prev;
+            return [
+              ...prev.slice(0, -1),
+              {
+                ...last,
+                parts: [{ type: "text", text: "请求失败，请稍后重试。" }],
+                isError: true,
+              },
+            ];
+          });
         }
       } finally {
         statusRef.current = "idle";
