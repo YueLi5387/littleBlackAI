@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
 import http from "@/lib/utils/http";
 import { useTranslation } from "react-i18next";
+import { canSubmitChatInput } from "@/lib/utils/chatControls";
 
 type ChatInputMode = "chatHome" | "chatDetail";
 
@@ -45,6 +46,14 @@ export const ChatInput = memo(function ChatInput({
   const currentFileName =
     type === "chatHome" ? localFile?.name : propsCurrentFile;
   const isUploading = type === "chatHome" ? localIsUploading : propsIsUploading;
+  const question = input.trim();
+  const canSubmit = canSubmitChatInput({
+    type,
+    hasQuestion: Boolean(question),
+    isResponding,
+    isUploading: Boolean(isUploading),
+    isCreatingChat,
+  });
 
   // 移除文件
   const handleRemoveFile = () => {
@@ -111,8 +120,7 @@ export const ChatInput = memo(function ChatInput({
       return;
     }
 
-    const question = input.trim();
-    if (!question) return;
+    if (!canSubmit) return;
 
     if (type === "chatHome") {
       await toChatDetail(question);
@@ -193,6 +201,7 @@ export const ChatInput = memo(function ChatInput({
           type={isResponding && type === "chatDetail" ? "default" : "primary"}
           onClick={() => void toChatDetailOrSubmit()}
           loading={isCreatingChat}
+          disabled={!canSubmit}
         >
           {isResponding && type === "chatDetail"
             ? t("common.stop")

@@ -6,6 +6,8 @@ const errorQueue = localforage.createInstance({ name: "errorQueue" });
 
 // 存报错事件的数组
 let events = [];
+let isFlushing = false;
+let hasRegisteredFlushListener = false;
 
 // 记录快照
 export const recordEvents = (event) => {
@@ -18,30 +20,52 @@ export const recordEvents = (event) => {
 
 // 重试积压的失败上报
 async function flushPending() {
-  const keys = await errorQueue.keys();
-  if (keys.length === 0) return;
-  for (const key of keys) {
-    const data = await errorQueue.getItem(key);
-    try {
-      await axios.post("/api/errorEvents", data);
-      await errorQueue.removeItem(key);
-    } catch {
-      // 失败项保留，下次再试
+  if (isFlushing) return;
+  isFlushing = true;
+  try {
+    const keys = await errorQueue.keys();
+    for (const key of keys) {
+      const data = await errorQueue.getItem(key);
+      try {
+        await axios.post("/api/errorEvents", data);
+        await errorQueue.removeItem(key);
+      } catch {
+        // 失败项保留，下次再试
+      }
     }
+  } finally {
+    isFlushing = false;
   }
 }
 
 // 上报失败时存入离线队列
 async function saveToQueue(data) {
   try {
-    await errorQueue.setItem(String(Date.now()), data);
+    const key =
+      typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random()}`;
+    await errorQueue.setItem(key, data);
   } catch (e) {
     console.error("localForage 写入失败", e);
   }
 }
 
-// 页面初始化时先清积压
-flushPending();
+function registerFlushListener() {
+  if (hasRegisteredFlushListener || typeof window === "undefined") return;
+  hasRegisteredFlushListener = true;
+
+  // 网络恢复或页面重新回到前台时补刷离线队列，覆盖“断网后恢复但不刷新页面”的场景。
+  window.addEventListener("online", () => {
+    void flushPending();
+  });
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden && navigator.onLine) void flushPending();
+  });
+}
+
+registerFlushListener();
+void flushPending();
 
 // 上报快照
 export const reportEvents = (err) => {
@@ -53,17 +77,23 @@ export const reportEvents = (err) => {
     time: new Date().toLocaleString(),
   };
 
-  // 直接上报整个 events 数组
+  const payload = {
+    error: errorDetail,
+    events: [...events],
+  };
+  // navigator.onLine-浏览器内置的网络检测API,true代表有网
+  if (typeof navigator !== "undefined" && navigator.onLine === false) {
+    void saveToQueue(payload);
+    return;
+  }
+
   axios
-    .post("/api/errorEvents", {
-      error: errorDetail,
-      events: [...events],
-    })
+    .post("/api/errorEvents", payload)
     .then(() => {
       console.log("错误日志上报成功!");
     })
     .catch((e) => {
       console.error("日志上传失败，已存入离线队列", e);
-      saveToQueue({ error: errorDetail, events: [...events] });
+      void saveToQueue(payload);
     });
 };

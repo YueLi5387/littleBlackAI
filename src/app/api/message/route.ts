@@ -6,6 +6,7 @@ import {
   updateChatTitle,
   getAllMessages,
   hybridSearch,
+  getKnowledgeChunksByChatId,
 } from "@/db";
 import { getQueryEmbedding, rerankChunks } from "@/lib/utils/ragUtils";
 
@@ -46,7 +47,12 @@ export async function POST(req: NextRequest) {
   const latestFileName = (latestUserMessage as any)?.fileName;
 
   if (chatId && Number.isFinite(chatId) && latestUserText) {
-    const userMsg = await addMessage(chatId, "user", latestUserText, latestFileName); //把用户发送的信息存数据库
+    const userMsg = await addMessage(
+      chatId,
+      "user",
+      latestUserText,
+      latestFileName,
+    ); //把用户发送的信息存数据库
     userMessageId = String(userMsg.id);
 
     // 异步生成标题，不阻塞聊天响应
@@ -79,22 +85,35 @@ export async function POST(req: NextRequest) {
   // 如果启用了 RAG 模式
   if (useRAG && chatId && latestUserText) {
     try {
-      // 1. 获取用户提问向量
-      const queryEmbedding = await getQueryEmbedding(latestUserText);
+      let chunkContents: string[] = [];
+      let useDocumentFallback = false;
 
-      // 2. 混合检索 (向量 + 关键词)
-      const rawChunks = await hybridSearch(
-        Number(chatId),
-        latestUserText,
-        queryEmbedding,
-      );
+      try {
+        // 正常路径：查询向量 -> 混合检索。
+        // 获取用户提问向量
+        const queryEmbedding = await getQueryEmbedding(latestUserText);
+        // 进行混合检索
+        const rawChunks = await hybridSearch(
+          Number(chatId),
+          latestUserText,
+          queryEmbedding,
+        );
+        chunkContents = rawChunks.map((chunk) => chunk.content);
+      } catch (error) {
+        // 向量接口或向量检索异常时，仍然从当前文档中取片段给模型。
+        console.error("向量检索失败，使用文档片段兜底:", error);
+        const fallbackChunks = await getKnowledgeChunksByChatId(
+          Number(chatId),
+          5,
+        );
+        chunkContents = fallbackChunks.map((chunk) => chunk.content);
+        useDocumentFallback = true;
+      }
 
-      // 3. Rerank 重排
-      const chunkContents = rawChunks.map((c) => c.content);
-      const rerankedContents = await rerankChunks(
-        latestUserText,
-        chunkContents,
-      );
+      // 已经确认向量服务异常时不再调用同一服务，直接使用数据库兜底片段，否则进行重排
+      const rerankedContents = useDocumentFallback
+        ? chunkContents
+        : await rerankChunks(latestUserText, chunkContents);
 
       if (rerankedContents.length > 0) {
         var refText = rerankedContents
@@ -121,6 +140,10 @@ export async function POST(req: NextRequest) {
       }
     } catch (error) {
       console.error("RAG 链路发生错误:", error);
+      systemPrompt = [
+        "你是智能助手陈小黑。当前文档检索服务暂时不可用。",
+        "请明确告知用户稍后重试，不要声称用户没有上传文档。",
+      ].join("\n");
     }
   }
 
@@ -139,6 +162,7 @@ export async function POST(req: NextRequest) {
   const stream = new ReadableStream({
     async start(controller) {
       let fullText = "";
+      let streamFailed = false;
       try {
         for await (const delta of result.textStream) {
           fullText += delta;
@@ -146,10 +170,21 @@ export async function POST(req: NextRequest) {
           controller.enqueue(encoder.encode(`data: ${data}\n\n`)); //往流里推入一块数据（二进制）
         }
       } catch (error) {
+        streamFailed = true;
         console.error("Stream error:", error);
+        const errorData = JSON.stringify({
+          type: "error",
+          message: "AI 服务暂时不可用，请稍后重试。",
+        });
+        controller.enqueue(encoder.encode(`data: ${errorData}\n\n`));
       } finally {
-        // 无论正常结束还是中止，只要有内容就存入数据库
-        if (chatId && Number.isFinite(chatId) && fullText.trim()) {
+        // 流中途失败时不保存半截回答，避免页面错误提示与数据库内容不一致。
+        if (
+          !streamFailed &&
+          chatId &&
+          Number.isFinite(chatId) &&
+          fullText.trim()
+        ) {
           try {
             const aiMsg = await addMessage(
               chatId,

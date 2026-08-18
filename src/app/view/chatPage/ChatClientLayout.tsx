@@ -14,8 +14,19 @@ import {
   MonitorOutlined,
   LogoutOutlined,
   BugOutlined,
+  DeleteOutlined,
 } from "@ant-design/icons";
-import { Button, Layout, Menu, theme, Select, Dropdown, Spin } from "antd";
+import {
+  Button,
+  Layout,
+  Menu,
+  theme,
+  Select,
+  Dropdown,
+  Spin,
+  Popconfirm,
+  message,
+} from "antd";
 import styles from "./view.module.scss";
 import { useRouter, useParams } from "next/navigation";
 import { ROUTES } from "@/lib/constants/routes";
@@ -67,6 +78,7 @@ export default function ChatClientLayout({
   const [chatPage, setChatPage] = useState(1);
   const [chatHasMore, setChatHasMore] = useState(true);
   const [chatLoadingMore, setChatLoadingMore] = useState(false);
+  const [deletingChatId, setDeletingChatId] = useState<string | null>(null);
   const siderRef = useRef<HTMLDivElement>(null);
 
   // 侧边栏滚动加载
@@ -117,6 +129,71 @@ export default function ChatClientLayout({
   const handleMenuClick = ({ key }: { key: string }) => {
     router.push(ROUTES.chatDetail(key));
   };
+
+  const handleDeleteChat = useCallback(
+    async (chatId: string) => {
+      setDeletingChatId(chatId);
+      try {
+        const res = (await http.delete(`/api/chat/${chatId}`)) as {
+          code: number;
+        };
+        if (res.code === 0) {
+          setChat((prev) => prev.filter((item) => String(item.id) !== chatId));
+          if (params.chat_id === chatId) router.replace(ROUTES.chatHome);
+          message.success("已删除对话");
+        }
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "删除对话失败";
+        message.error(errorMessage);
+      } finally {
+        setDeletingChatId(null);
+      }
+    },
+    [params.chat_id, router],
+  );
+
+  const renderChatMenuLabel = useCallback(
+    (item: ChatItem) => {
+      const chatId = String(item.id);
+      const isDeleting = deletingChatId === chatId;
+
+      return (
+        <div className={styles.chatMenuItem}>
+          <div className={styles.chatMenuText}>
+            <span className={styles.chatTitle}>{item.title}</span>
+            {!collapsed && (
+              <span className={styles.chatTime}>
+                {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
+              </span>
+            )}
+          </div>
+          {!collapsed && (
+            <Popconfirm
+              title="确认删除这个对话吗？"
+              okText={t("common.confirm")}
+              cancelText={t("common.cancel")}
+              onConfirm={(event) => {
+                event?.stopPropagation();
+                void handleDeleteChat(chatId);
+              }}
+            >
+              <Button
+                type="text"
+                danger
+                size="small"
+                icon={<DeleteOutlined />}
+                loading={isDeleting}
+                className={styles.chatDeleteBtn}
+                onClick={(event) => event.stopPropagation()}
+              />
+            </Popconfirm>
+          )}
+        </div>
+      );
+    },
+    [collapsed, deletingChatId, handleDeleteChat, t],
+  );
 
   // 跳转监控页面
   const handleGoSupervise = useCallback(
@@ -192,40 +269,9 @@ export default function ChatClientLayout({
   const menuItems = useMemo(() => {
     return chat.map((item) => ({
       key: String(item.id),
-      label: (
-        <div
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "5px",
-            lineHeight: "1.2",
-            padding: "4px 0",
-          }}
-        >
-          <span
-            style={{
-              fontSize: "16px",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {item.title}
-          </span>
-          {!collapsed && (
-            <span
-              style={{
-                fontSize: "10px",
-                color: "rgba(255, 255, 255, 0.45)",
-              }}
-            >
-              {dayjs(item.createdAt).format("YYYY-MM-DD HH:mm")}
-            </span>
-          )}
-        </div>
-      ),
+      label: renderChatMenuLabel(item),
     }));
-  }, [chat, collapsed]);
+  }, [chat, renderChatMenuLabel]);
 
   return (
     <Layout className={styles.layout}>
