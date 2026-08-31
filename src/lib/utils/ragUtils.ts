@@ -1,6 +1,7 @@
 // 封装RAG相关逻辑，包含文档转文字，文档切块，文字转向量，重排
 import mammoth from "mammoth";
-import pdf from "pdf-parse";
+// import pdf from "pdf-parse";
+const pdf = require("pdf-parse");
 
 const EMBEDDING_API_URL = "https://api.siliconflow.cn/v1/embeddings";
 const EMBEDDING_MODEL = "BAAI/bge-m3";

@@ -3,6 +3,9 @@ import { getAllChats } from "@/db";
 import { createClient } from "@/lib/supabase/server";
 import ChatClientLayout from "./ChatClientLayout";
 
+// This layout reads the request's auth cookies, so it must render per request.
+export const dynamic = "force-dynamic";
+
 export default async function ChatLayout({
   children,
 }: Readonly<{
