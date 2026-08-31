@@ -2,7 +2,12 @@
 import axios from "axios";
 import localforage from "localforage";
 
-const errorQueue = localforage.createInstance({ name: "errorQueue" });
+// IndexedDB/localStorage are browser-only. Creating the store during SSR/static
+// generation makes localForage throw because Vercel's build worker has neither.
+const errorQueue =
+  typeof window === "undefined"
+    ? null
+    : localforage.createInstance({ name: "errorQueue" });
 
 // 存报错事件的数组
 let events = [];
@@ -20,6 +25,7 @@ export const recordEvents = (event) => {
 
 // 重试积压的失败上报
 async function flushPending() {
+  if (!errorQueue) return;
   if (isFlushing) return;
   isFlushing = true;
   try {
@@ -40,6 +46,7 @@ async function flushPending() {
 
 // 上报失败时存入离线队列
 async function saveToQueue(data) {
+  if (!errorQueue) return;
   try {
     const key =
       typeof crypto !== "undefined" && "randomUUID" in crypto

@@ -1,9 +1,15 @@
 import http from "./http";
 import localforage from "localforage";
 
-const perfQueue = localforage.createInstance({ name: "perfQueue" });
+// This module can be imported while rendering on the server. Only initialise
+// localForage in a browser where a storage backend is available.
+const perfQueue =
+  typeof window === "undefined"
+    ? null
+    : localforage.createInstance({ name: "perfQueue" });
 
 async function flushPendingPerf() {
+  if (!perfQueue) return;
   const keys = await perfQueue.keys();
   if (keys.length === 0) return;
   for (const key of keys) {
@@ -18,6 +24,7 @@ async function flushPendingPerf() {
 }
 
 async function savePerfToQueue(data: any) {
+  if (!perfQueue) return;
   try {
     await perfQueue.setItem(String(Date.now()), data);
   } catch (e) {
